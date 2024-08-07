@@ -263,33 +263,54 @@ uint16_t CBuffSizes[CPIPELINES] =
         if ( CBuffSizes[i] ) {
             pCBuffs[i] = new CircularBuffer( CBuffSizes[i] );
             if ( nullptr == pCBuffs[i] ) {
-                printf("No space for CircularBuffer %d!\r\n", i );
+                printf("No space for pCBuffs[%d]!\r\n", i );
+#if 0
+            } else {
+                printf("pCBuffs[%d] with size %d created!\r\n", i, pCBuffs[i]->size() );
+#endif
             }
         }
     }
     
     //Initialize Pipeline objects specifying the default buffer size
+#if 1
     for ( uint8_t i = 0; i < CPIPELINES; i++ ) {
         if ( CBuffSizes[i] ) {
             pPipelines[i] = new Pipeline( pCBuffs[i] );
             if ( nullptr == pPipelines[i] ) {
                 printf("No space for Pipeline %d!\r\n", i );
+#if 0
+            } else {
+                printf("Pipeline#%d created! Buffer count/size: %d/%d\r\n",
+                    i, pPipelines[i]->getBufferCount(), pPipelines[i]->getBackEnd()->size() );
+#endif
             }
         }
     }
+#endif
 
-    //init GoL
-    //GoLinit( pPipeline->getFrontEnd(), pPipeline->getBackEnd() );
+    //init Pipes
+#if 0
+#endif
 
-    //pPipeline->getFrontEnd()->print2D( width, height );
-
+#if 1
     pDemoApp = new LoRa_Mesh_DemoApp;
     if ( nullptr == pDemoApp ) {
-        printf("No space for DemoApp\r\n");
+        printf("No space for DemoApp! Stopping!\r\n");
+        while ( 1 ) {;}
+    } else {
+#if 1
+        printf("DemoApp created!\r\n");
+#endif
+        setup_DemoApp();
+#if 1
+        printf("DemoApp initialised!\r\n");
+#endif
     }
-    setup_DemoApp();
-    
+#endif
+
     //Add HMI incoming data processing pipeline
+#if 0
     if ( pPipelines[0] ) {
         if ( StatusCode::OK == pPipelines[0]->AddProcessor( OnHMI_DataEvent ) ) {
             ;
@@ -297,8 +318,10 @@ uint16_t CBuffSizes[CPIPELINES] =
             printf("No space for pPipelines[0] OnHMI_DataEvent\r\n");
         }
     }
+#endif
 
     //Add radio modem incoming data processing pipeline
+#if 0
     if ( pPipelines[1] ) {
         if ( StatusCode::OK == pPipelines[1]->AddProcessor( OnRadioHub_DataEvent, 0 ) ) {
             ;
@@ -306,8 +329,10 @@ uint16_t CBuffSizes[CPIPELINES] =
             printf("No space for pPipelines[1] OnRadioHub_DataEvent\r\n");
         }
     }
+#endif
     
     //Add a parser and a processor to the Pipeline list
+#if 0
     if ( pPipelines[2] ) {
         if ( StatusCode::OK == pPipelines[2]->AddProcessor( parser, 20 ) ) {
             if ( StatusCode::OK == pPipelines[2]->AddProcessor( process, 1 ) ) {
@@ -319,7 +344,7 @@ uint16_t CBuffSizes[CPIPELINES] =
             printf("No space for pPipelines[2] parser\r\n");
         }
     }
-
+#endif
 
 }
 
@@ -339,8 +364,11 @@ void setup( void ) {
   Serial4.print("Serial4\r\n");
   Serial5.print("Serial5\r\n");
 
+#if 0
   //setupTimers();
-  //setupObjects();
+#endif
+
+  setupObjects();
 
   mySysTick = HAL_GetTick();
 
@@ -352,20 +380,40 @@ void setup( void ) {
 void loop() {
 
     mySysTick = HAL_GetTick();
+#if 1
     if ( 0 == ( mySysTick % 1000 ) ) {
-        printf("%d\r\n", mySysTick / 1000 );
+        printf("%d:", mySysTick / 1000 );
+        printf("%d/%d/%d\r\n",
+            pCBuffs[0]->count(), pCBuffs[1]->count(), pCBuffs[2]->count() );
     }
-    //while ( 0 < SerialUSB.available() ) {
-    //    LEDtoggle();
-    //    printf("%c", SerialUSB.read() );
-    //    //buff = SerialUSB.read();
-    //    //if ( pCBuffs[0] ) {
-    //    //    pCBuffs[0]->put( buff );
-    //    //}
-    //}
-
+#endif
+#if 1
+    if ( pCBuffs[0]->count() ) {
+#if 0
+        printf("0%c", pCBuffs[0]->get() );
+#else
+        Serial1.write( pCBuffs[0]->get() );
+#endif
+    }
+#endif
+#if 1
+    if ( pCBuffs[1]->count() ) {
+        printf("1%c", pCBuffs[1]->get() );
+    }
+#endif
+#if 1
+    if ( pCBuffs[2]->count() ) {
+        printf("2%c", pCBuffs[2]->get() );
+    }
+#endif
+#if 0
     //pPipelines[0]->processAll();
+#endif
+#if 0
     //pPipelines[1]->processAll();
+#endif
+#if 0
     //pPipelines[2]->processAll();
+#endif
 
 }
