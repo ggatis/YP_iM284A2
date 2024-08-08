@@ -39,4 +39,13 @@ bool TimedOut( uint32_t* pTimeOutTime );
 
 extern Pipeline* pPipelines[CPIPELINES];
 
+//The Data Report size
+#define UAR2_SIZE 80
+#define UAR4_SIZE 4
+#define UAR5_SIZE 4
+#define I2CA_SIZE 2
+#define I2CB_SIZE 2
+#define I2CC_SIZE 2
+#define DATA_SIZE ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE + I2CB_SIZE + I2CC_SIZE )
+
 #endif // _YP_iM284A2_H_

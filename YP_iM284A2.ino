@@ -163,6 +163,15 @@ void setupPins( void ) {
     LEDinit();
 }
 
+
+void setupWire( void ) {
+    Wire.end();
+    Wire.setSDA( PB_7 );    //or using pin name PY_n
+    Wire.setSCL( PB6 );     //or using pin number PYn
+    Wire.begin();
+}
+
+
 void setupSerials( void ) {
   //Serial.end();
   SerialUSB.begin( 115200 );
@@ -352,6 +361,7 @@ uint16_t CBuffSizes[CPIPELINES] =
 void setup( void ) {
 
   setupPins();
+  setupWire();
   setupPrintf();
   setupSerials();
 
