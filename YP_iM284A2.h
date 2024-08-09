@@ -1,6 +1,9 @@
 #ifndef _YP_iM284A2_H_
 #define _YP_iM284A2_H_
 
+
+#include "interface.h"  //pin definitions
+
 #include <stdint.h>
 
 extern volatile uint32_t mySysTick;

@@ -6,6 +6,8 @@
 #include "printf.inc"   //enable printf
 bool noPrintf = true;
 
+#include <Wire.h>
+
 #include "YP_iM284A2.h"
 #include "CircularBuffer.h"
 //#include "Pipeline.h"
@@ -166,9 +168,10 @@ void setupPins( void ) {
 
 void setupWire( void ) {
     Wire.end();
-    Wire.setSDA( PB_7 );    //or using pin name PY_n
-    Wire.setSCL( PB6 );     //or using pin number PYn
+    Wire.setSDA( WIRE_SDA );
+    Wire.setSCL( WIRE_SCL );
     Wire.begin();
+    Wire.setClock( 100000 );
 }
 
 
@@ -182,6 +185,7 @@ void setupSerials( void ) {
   while ( !SerialUSB ) {
      if ( TimedOut( &SerialUSBtimeout ) ) {
         noPrintf = true;
+        SerialUSB.end();
         break;
     }   //wait for serial port to connect. Needed for native USB port only
   }
@@ -196,32 +200,32 @@ void setupSerials( void ) {
   Serial4.end();
   Serial5.end();
 
-  Serial1.setRx( PA10 );
-  Serial1.setTx( PA9 );
+  Serial1.setRx( UART1_RX );
+  Serial1.setTx( UART1_TX );
   Serial1.begin( 115200 );
   //while ( !Serial1 ) {
   //  printf("1");
   //}
   //printf("Serial1 ready!\r\n");
 
-  Serial2.setRx( PA_3_ALT1 );
-  Serial2.setTx( PA_2_ALT1 );
+  Serial2.setRx( UART2_RX );
+  Serial2.setTx( UART2_TX );
   Serial2.begin( 115200 );
   //while ( !Serial2 ) {
   //  printf("2");
   //}
   //printf("Serial2 ready!\r\n");
 
-  Serial4.setRx( PA1 );
-  Serial4.setTx( PA0 );
+  Serial4.setRx( UART4_RX );
+  Serial4.setTx( UART4_TX );
   Serial4.begin( 115200 );
   //while ( !Serial4 ) {
   //  printf("4");
   //}
   //printf("Serial4 ready!\r\n");
 
-  Serial5.setRx( PB4 );
-  Serial5.setTx( PB3 );
+  Serial5.setRx( UART5_RX );
+  Serial5.setTx( UART5_TX );
   Serial5.begin( 115200 );
   //while ( !Serial5 ) {
   //  printf("5");
