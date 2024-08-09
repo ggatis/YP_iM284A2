@@ -12,6 +12,8 @@ bool noPrintf = true;
 #include "CircularBuffer.h"
 //#include "Pipeline.h"
 
+#include "CO_2_click.h"
+
 //some important data
 
 //time
@@ -163,6 +165,7 @@ void serialEvent5() {
 /*********************************************************************/
 void setupPins( void ) {
     LEDinit();
+    setup_CO_2_HW();
 }
 
 
@@ -303,7 +306,19 @@ uint16_t CBuffSizes[CPIPELINES] =
 #endif
 
     //init Pipes
-#if 0
+#if 1
+    //SERIALUSB
+    //SERIAL1IN
+    //SERIAL2IN
+    //SERIAL4IN
+    //SERIAL5IN
+    //I2CAIN
+    //I2CBIN
+    //I2CCIN
+    //SERIAL1OUT
+    //SERIAL2OUT
+    //SERIAL4OUT
+    //SERIAL5OUT
 #endif
 
 #if 1
@@ -323,6 +338,7 @@ uint16_t CBuffSizes[CPIPELINES] =
 #endif
 
     //Add HMI incoming data processing pipeline
+    //SERIALUSB
 #if 0
     if ( pPipelines[0] ) {
         if ( StatusCode::OK == pPipelines[0]->AddProcessor( OnHMI_DataEvent ) ) {
@@ -334,6 +350,7 @@ uint16_t CBuffSizes[CPIPELINES] =
 #endif
 
     //Add radio modem incoming data processing pipeline
+    //SERIAL1IN
 #if 0
     if ( pPipelines[1] ) {
         if ( StatusCode::OK == pPipelines[1]->AddProcessor( OnRadioHub_DataEvent, 0 ) ) {
@@ -345,6 +362,7 @@ uint16_t CBuffSizes[CPIPELINES] =
 #endif
     
     //Add a parser and a processor to the Pipeline list
+    //SERIAL2IN
 #if 0
     if ( pPipelines[2] ) {
         if ( StatusCode::OK == pPipelines[2]->AddProcessor( parser, 20 ) ) {
@@ -358,6 +376,17 @@ uint16_t CBuffSizes[CPIPELINES] =
         }
     }
 #endif
+
+    //SERIAL4IN
+    //SERIAL5IN
+    //I2CAIN
+    setup_CO_2_SW();
+    //I2CBIN
+    //I2CCIN
+    //SERIAL1OUT
+    //SERIAL2OUT
+    //SERIAL4OUT
+    //SERIAL5OUT
 
 }
 
@@ -395,11 +424,13 @@ void loop() {
 
     mySysTick = HAL_GetTick();
 #if 1
+    /*
     if ( 0 == ( mySysTick % 1000 ) ) {
         printf("%d:", mySysTick / 1000 );
         printf("%d/%d/%d\r\n",
             pCBuffs[0]->count(), pCBuffs[1]->count(), pCBuffs[2]->count() );
     }
+    */
 #endif
 #if 1
     if ( pCBuffs[0]->count() ) {
@@ -428,6 +459,12 @@ void loop() {
 #endif
 #if 0
     //pPipelines[2]->processAll();
+#endif
+#if 1
+    //I2CAIN
+    pPipelines[I2CAIN]->processAll();
+    //printf("I2CAIN _pipeOffset/_faultyPipe: %d/%d\r\n",
+    //    pPipelines[I2CAIN]->getPipeOffset(), pPipelines[I2CAIN]->getFaultyPipe() );
 #endif
 
 }

@@ -15,4 +15,8 @@ extern TwoWire Wire;
 #define MEAS_WAIT_CO_2  300     //ms wait before measurement
 //#define READY_CO_2      300     //ms or some sensors they read more freuently
 
+void setup_CO_2_HW( void );
+void setup_CO_2_SW( void );
+
+
 #endif // _CO_2_CLICK_H_

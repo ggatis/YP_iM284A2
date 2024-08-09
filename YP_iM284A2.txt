@@ -1,0 +1,22 @@
+YP_iM284A2.ino
+This application demonstrates the host controller message protocol
+for WiMOD radio modules provided by IMST.
+DemoApp created!
+DemoApp initialised!
+Making pPipelines[I2CAIN]:
+powerOn_CO_2,
+waitOn_CO_2,
+Scan_I2C,
+powerOff_CO_2,
+waitOn_CO_2,
+pPipelines[I2CAIN] is ready!
+2S2e2r2i2a2l212
+ Scanning...
+I2C device found at address 0x48
+I2C device found at address 0x4D
+Done
+Scanning...
+I2C device found at address 0x48
+I2C device found at address 0x4D
+Done
+Scanning...

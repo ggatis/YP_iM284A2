@@ -49,11 +49,10 @@ StatusCode Scan_I2C( ByteArray* pin, ByteArray* pout ) {
 
     if ( !error ) {
       nDevices++;
-      printf("I2C device found");
+      printf("I2C device found at address 0x%02X\r\n", address );
     } else if ( 4 == error ) {
-      printf("Unknown error");
+      printf("Unknown error at address 0x%02X\r\n", address );
     }
-    printf(" at address 0x%02X\r\n", address );
   }
   if ( nDevices == 0 ) printf("No I2C devices found\r\n");
   else                 printf("Done\r\n");
