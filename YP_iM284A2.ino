@@ -19,6 +19,10 @@ bool noPrintf = true;
 //time
 volatile uint32_t mySysTick = 0;
 
+/* Measurements */
+ByteArray* pMeasurements;
+uint8_t    Ready[6] = { 0, 0, 0, 0, 0, 0 };
+
 /* Buffers and Pipelines */
 /*
 0 - SerialUSB: PC, debug
@@ -165,7 +169,16 @@ void serialEvent5() {
 /*********************************************************************/
 void setupPins( void ) {
     LEDinit();
+    //SERIAL2IN
+    //SERIALUSB
+    //SERIAL1IN
+    //SERIAL2IN
+    //SERIAL4IN
+    //SERIAL5IN
+    //I2CAIN
     setup_CO_2_HW();
+    //I2CBIN
+    //I2CCIN
 }
 
 
@@ -267,6 +280,11 @@ void setupTimers( void ) {
 #include "Pipes.h"
 
 void setupObjects() {
+
+    pMeasurements = new ByteArray( DATA_SIZE );
+    if ( nullptr == pMeasurements ) {
+        printf("No space for pMeasurements!\r\n");
+
 /*
 uint16_t CBuffSizes[CPIPELINES] =
     { 300, 300, 100, 000,
@@ -324,21 +342,21 @@ uint16_t CBuffSizes[CPIPELINES] =
 #if 1
     pDemoApp = new LoRa_Mesh_DemoApp;
     if ( nullptr == pDemoApp ) {
+        //debug---vvv
         printf("No space for DemoApp! Stopping!\r\n");
+        //debug---^^^
         while ( 1 ) {;}
     } else {
-#if 1
         printf("DemoApp created!\r\n");
-#endif
         setup_DemoApp();
-#if 1
+        //debug---vvv
         printf("DemoApp initialised!\r\n");
-#endif
+        //debug---^^^
     }
 #endif
 
-    //Add HMI incoming data processing pipeline
-    //SERIALUSB
+    /* Add parsers and processors to the Pipeline list */
+    //SERIALUSB: HMI incoming/outgoing data processing pipeline
 #if 0
     if ( pPipelines[0] ) {
         if ( StatusCode::OK == pPipelines[0]->AddProcessor( OnHMI_DataEvent ) ) {
@@ -348,8 +366,6 @@ uint16_t CBuffSizes[CPIPELINES] =
         }
     }
 #endif
-
-    //Add radio modem incoming data processing pipeline
     //SERIAL1IN
 #if 0
     if ( pPipelines[1] ) {
@@ -360,8 +376,6 @@ uint16_t CBuffSizes[CPIPELINES] =
         }
     }
 #endif
-    
-    //Add a parser and a processor to the Pipeline list
     //SERIAL2IN
 #if 0
     if ( pPipelines[2] ) {
@@ -376,10 +390,9 @@ uint16_t CBuffSizes[CPIPELINES] =
         }
     }
 #endif
-
     //SERIAL4IN
     //SERIAL5IN
-    //I2CAIN
+    //I2CAIN: CO_2_Click
     setup_CO_2_SW();
     //I2CBIN
     //I2CCIN
@@ -466,5 +479,11 @@ void loop() {
     //printf("I2CAIN _pipeOffset/_faultyPipe: %d/%d\r\n",
     //    pPipelines[I2CAIN]->getPipeOffset(), pPipelines[I2CAIN]->getFaultyPipe() );
 #endif
+    //par pipeline!!!
+    if ( Ready[I2CAIN] ) {
+        Ready[I2CAIN] = 0;
+        uint32_t ppb = (uint32_t)( 1000 * *(float*)( pMeasurements->data() + CO_2_OFFS ) );
+        printf( "CO : 0.%3d ppm\r\n", ppb );
+    }
 
 }

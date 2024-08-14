@@ -46,9 +46,18 @@ extern Pipeline* pPipelines[CPIPELINES];
 #define UAR2_SIZE 80
 #define UAR4_SIZE 4
 #define UAR5_SIZE 4
-#define I2CA_SIZE 2
+#define I2CA_SIZE sizeof( float )   //CO_2
 #define I2CB_SIZE 2
 #define I2CC_SIZE 2
+#define UAR2_OFFS 0
+#define UAR4_OFFS ( UAR2_SIZE )
+#define UAR5_OFFS ( UAR2_SIZE + UAR4_SIZE )
+#define CO_2_OFFS ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE )
+#define I2CB_SIZE ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE )
+#define I2CC_SIZE ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE + I2CB_SIZE )
 #define DATA_SIZE ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE + I2CB_SIZE + I2CC_SIZE )
+
+extern ByteArray* pMeasurements;
+extern uint8_t    Ready[6];
 
 #endif // _YP_iM284A2_H_
