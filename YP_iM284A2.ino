@@ -39,8 +39,8 @@ volatile uint32_t mySysTick = 0;
 15 - Serial5:   to UART5
 */
 
-extern ByteArray*   pMeasurements;
-extern uint8_t      Ready[6] = { 0, 0, 0, 0, 0, 0 };
+ByteArray*      pMeasurements;
+uint8_t         Ready[6] = { 0, 0, 0, 0, 0, 0 };
 
 //last input from buffers: only SERIALUSB and SERIAL1IN can operate independently
 volatile uint32_t lastIOticks[3] =
@@ -285,10 +285,10 @@ void setupTimers( void ) {
 
 #include "Pipes.h"
 
-void setupObjects() {
+void setupObjects( void ) {
 
     pMeasurements = new ByteArray( DATA_SIZE );
-    if ( nullptr == pMeasurements ) {
+    if ( nullptr == pMeasurements )
         printf("No space for pMeasurements!\r\n");
 
 
