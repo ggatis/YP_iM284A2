@@ -21,10 +21,62 @@ static uint32_t ReadyTime = 0;
 
 
 //Wire -> uz kopeeju h/cpp
+uint8_t i2c_master_read( uint8_t addr, uint8_t *data_buf, uint8_t len ) {
+
+    uint32_t    ReadyTime;
+
+    if ( !data_buf ) return 2;                  //pointer?
+     
+    Wire.requestFrom( addr, len );
+    setTimeOut( &ReadyTime, len * 1 + 1 );      //wait for a reply
+    
+    while( !TimedOut( &ReadyTime ) && len ) {
+        if ( Wire.available() ) {
+            *data_buf++ = Wire.read();
+            --len;
+            if ( !len ) {
+                return 0;
+            }
+        }
+    }
+
+    return 3;                                   //TO
+
+}
+
+
+uint8_t i2c_master_write_then_read( uint8_t addr, uint8_t reg, uint8_t *data_buf, uint8_t len ) {
+
+    uint32_t    ReadyTime;
+
+    if ( !data_buf ) return 2;                  //pointer?
+     
+    Wire.beginTransmission( addr );             //transmit to device
+    Wire.write( reg );                          //sends one byte
+    Wire.endTransmission();                     //stop transmitting
+
+    setTimeOut( &ReadyTime, len * 1 + 1 );      //wait for a reply
+    Wire.requestFrom( addr, len );
+    
+    while( !TimedOut( &ReadyTime ) && len ) {
+        if ( Wire.available() ) {
+            *data_buf++ = Wire.read();
+            --len;
+            if ( !len ) {
+                return 0;
+            }
+        }
+    }
+
+    return 3;                                   //TO
+
+}
+
+
+//CO_2_Click specific
 uint8_t co2_generic_write_byte( uint8_t reg, uint8_t data ) {
 
-    if ( ( reg < 0x01 ) || ( reg > 0x01 && reg < 0x10 ) || ( reg > 0x12 ))
-    {
+    if ( ( reg < 0x01 ) || ( reg > 0x01 && reg < 0x10 ) || ( reg > 0x12 ) ) {
         return 1;
     }
 
@@ -33,32 +85,9 @@ uint8_t co2_generic_write_byte( uint8_t reg, uint8_t data ) {
     Wire.write( reg );                          //sends one byte
     Wire.write( data );                         //sends one byte
     Wire.endTransmission();                     //stop transmitting
-    //co2_enable( ctx, CO2_DEVICE_DIS );          //RST should be to the ground
+    //co2_enable( ctx, CO2_DEVICE_DIS );        //RST should be to the ground
 
     return 0;
-}
-
-uint8_t i2c_master_write_then_read_byte( uint8_t reg, uint8_t *data_buf ) {
-
-    if ( !data_buf ) return 2;                  //pointer?
-     
-    Wire.beginTransmission( I2C_ADDR_CO_2 );    //transmit to device
-    Wire.write( reg );                          //sends one byte
-    Wire.endTransmission();                     //stop transmitting
-
-    Wire.requestFrom( I2C_ADDR_CO_2, 1 );
-    setTimeOut( &ReadyTime, I2C_SYMBOL_TO );    //wait for a reply
-    
-    while( !TimedOut( &ReadyTime ) ) {
-        if ( Wire.available() ) {
-            fTO = 0;
-            *data_buf = Wire.read();
-            return 0;
-        }
-    }
-
-    return 1;                                   //TO
-
 }
 
 uint8_t co2_generic_read_byte( uint8_t reg, uint8_t *data_buf ) {
@@ -68,57 +97,70 @@ uint8_t co2_generic_read_byte( uint8_t reg, uint8_t *data_buf ) {
     }
 
     //co2_enable( ctx, CO2_DEVICE_EN );
-    return i2c_master_write_then_read_byte( reg, data_buf );
+    return i2c_master_write_then_read( I2C_ADDR_CO_2, reg, data_buf, 1 );
     //co2_enable( ctx, CO2_DEVICE_DIS );
 
 }
 
 
-    co2_wait_i2c_ready( &co2 );
-void co2_wait_i2c_ready ( co2_t *ctx )
-{
-    uint8_t i2c_busy;
+uint8_t co2_wait_i2c_ready ( void ) {
 
-    co2_generic_read( ctx, CO2_STATUS_REG, &i2c_busy, 1 );
+    uint8_t     i2c_ready;
 
-    while ( !( i2c_busy & 0x01 ) )
-    {
-        co2_generic_read( ctx, CO2_STATUS_REG, &i2c_busy, 1 );
+    uint32_t    ReadyTime;
+    setTimeOut( &ReadyTime, 3 );                //wait for a reply
+    
+    do {
+        co2_generic_read_byte( CO2_STATUS_REG, &i2c_ready );
+        if( TimedOut( &ReadyTime ) ) {
+            break;
+        }
+    } while ( !( i2c_ready & 0x01 ) );
+
+    if( !( i2c_ready & 0x01 ) ) {
+        printf("CO 2 Click not ready\r\n");
+        return 3;
     }
+
+    return 0;
+
 }
 
-void co2_read_adc( co2_t *ctx, uint16_t *data_out )
-{
-    uint8_t buff_data[ 2 ];
-    uint16_t tmp;
-    uint8_t read_addr;
+
+uint8_t co2_read_adc( uint16_t *data_out ) {
+
+    uint8_t     result;
+    uint8_t     buff_data[ 2 ];
+    uint16_t    tmp;
+    uint8_t     read_addr;
 
     read_addr = 0;
     
-    i2c_master_set_slave_address( &ctx->i2c, ADC_DEVICE_ADDR );
-    i2c_master_read( &ctx->i2c, buff_data, 2 );
-    i2c_master_set_slave_address( &ctx->i2c, ctx->slave_address );
+    result = i2c_master_read( ADC_DEVICE_ADDR, buff_data, 2 );
 
     tmp = buff_data[ 0 ];
     tmp <<= 8;
     tmp |= buff_data[ 1 ];
     
     *data_out = tmp;
+    return result;
+
 }
 
-    //co2_get_co2_ppm( &co2, &co2_value );
-    co2_get_co2_ppm( &co2, (float*)pout );
-void co2_get_co2_ppm( co2_t *ctx, float *co2_data )
-{
-    uint16_t adc_data;
-    float temp;
+
+uint8_t co2_get_co2_ppm( float* co2_data ) {
+
+    uint8_t     result;
+    uint16_t    adc_data;
+    float       temp;
     
-    co2_read_adc( ctx, &adc_data );
+    result = co2_read_adc( &adc_data );
     
     temp = ( float )adc_data / 4095;
     temp *= 1000;
 
     *co2_data = temp;
+    return result;
 }
 
 
@@ -131,6 +173,7 @@ void setup_CO_2_HW( void ) {
 
 /* Processors */
 StatusCode powerOn_CO_2( ByteArray* pin, ByteArray* pout ) {
+    Ready[I2CAIN] = 0;
     digitalWrite( ENABLE_I2CA, HIGH );
     setTimeOut( &ReadyTime, POWER_ON_WAIT_CO_2 );   //wait after enable
     return StatusCode::NEXT;                        //continue on next iteration
@@ -182,12 +225,12 @@ StatusCode app_init_CO_2( ByteArray* pin, ByteArray* pout ) {
     //Delay_ms ( 500 );   //POWER_ON_WAIT_CO_2
 
     Wire.beginTransmission( I2C_ADDR_CO_2 );
-    co2_generic_write_byte( CO2_LOCK_REG, CO2_WRITE_MODE )
-    co2_generic_write_byte( CO2_MODECN_REG, CO2_STANDBY_MODE )
+    co2_generic_write_byte( CO2_LOCK_REG, CO2_WRITE_MODE );
+    co2_generic_write_byte( CO2_MODECN_REG, CO2_STANDBY_MODE );
     co2_generic_write_byte( CO2_TIACN_REG,
-        CO2_3500_OHM_TIA_RES | CO2_100_OHM_LOAD_RES )
+        CO2_3500_OHM_TIA_RES | CO2_100_OHM_LOAD_RES );
     co2_generic_write_byte( CO2_REFCN_REG,
-        CO2_VREF_EXT | CO2_50_PERCENTS_INT_ZERO | CO2_BIAS_POL_NEGATIVE | CO2_0_PERCENTS_BIAS )
+        CO2_VREF_EXT | CO2_50_PERCENTS_INT_ZERO | CO2_BIAS_POL_NEGATIVE | CO2_0_PERCENTS_BIAS );
     Wire.endTransmission();
     
     //debug---vvv
@@ -199,15 +242,18 @@ StatusCode app_init_CO_2( ByteArray* pin, ByteArray* pout ) {
 
 }
 
+
 StatusCode app_task_CO_2( ByteArray* pin, ByteArray* pout ) {
 //void application_task ( void ) {
 
     //float co2_value;
    
-    co2_wait_i2c_ready( &co2 );
-
-    //co2_get_co2_ppm( &co2, &co2_value );
-    co2_get_co2_ppm( &co2, (float*)pout );
+    if ( co2_wait_i2c_ready() ) {
+        return StatusCode::ERROR;               //sensor TO
+    };
+    if ( co2_get_co2_ppm( (float*)pout ) ) {
+        return StatusCode::ERROR;               //sensor TO
+    };
     Ready[I2CAIN] = 1;
 
     //Delay_ms ( 300 );                         //in power off delay
@@ -275,9 +321,10 @@ void setup_CO_2_SW( void ) {
         printf(",\r\n");
 
         printf("CO_ppm buffer");
-        pPipelines[I2CAIN]->setOutputBuffer( pPipelines[I2CAIN]->getPipeCount(),
+        pPipelines[I2CAIN]->setOutputBuffer( 
+            pPipelines[I2CAIN]->getPipeCount(),
             (ByteArray*)( pMeasurements->data() + CO_2_OFFS ) );
-        if ( (ByteArray*)( pMeasurements->data() + CO_2_OFFS ) ) !=
+        if ( (ByteArray*)( pMeasurements->data() + CO_2_OFFS ) !=
             pPipelines[I2CAIN]->getOutputBuffer( pPipelines[I2CAIN]->getPipeCount() ) ) {
             printf(" <- Error");
         }

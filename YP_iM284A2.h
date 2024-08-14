@@ -34,13 +34,15 @@ bool TimedOut( uint32_t* pTimeOutTime );
 #define I2CAIN      6
 #define I2CBIN      7
 #define I2CCIN      8
-#define SERIAL1OUT 11
-#define SERIAL2OUT 12
-#define SERIAL4OUT 14
-#define SERIAL5OUT 15
-#define CPIPELINES 16
+#define SERIAL1OUT  11
+#define SERIAL2OUT  12
+#define SERIAL4OUT  14
+#define SERIAL5OUT  15
+#define CPIPELINES  16
 
-extern Pipeline* pPipelines[CPIPELINES];
+extern Pipeline*    pPipelines[CPIPELINES];
+extern ByteArray*   pMeasurements;
+extern uint8_t      Ready[6];
 
 //The Data Report size
 #define UAR2_SIZE 80
@@ -49,15 +51,14 @@ extern Pipeline* pPipelines[CPIPELINES];
 #define I2CA_SIZE sizeof( float )   //CO_2
 #define I2CB_SIZE 2
 #define I2CC_SIZE 2
+
 #define UAR2_OFFS 0
 #define UAR4_OFFS ( UAR2_SIZE )
 #define UAR5_OFFS ( UAR2_SIZE + UAR4_SIZE )
 #define CO_2_OFFS ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE )
-#define I2CB_SIZE ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE )
-#define I2CC_SIZE ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE + I2CB_SIZE )
-#define DATA_SIZE ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE + I2CB_SIZE + I2CC_SIZE )
+#define I2CB_OFFS ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE )
+#define I2CC_OFFS ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE + I2CB_SIZE )
 
-extern ByteArray* pMeasurements;
-extern uint8_t    Ready[6];
+#define DATA_SIZE ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE + I2CB_SIZE + I2CC_SIZE )
 
 #endif // _YP_iM284A2_H_

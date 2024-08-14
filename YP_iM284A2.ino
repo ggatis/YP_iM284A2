@@ -19,22 +19,28 @@ bool noPrintf = true;
 //time
 volatile uint32_t mySysTick = 0;
 
-/* Measurements */
-ByteArray* pMeasurements;
-uint8_t    Ready[6] = { 0, 0, 0, 0, 0, 0 };
-
 /* Buffers and Pipelines */
 /*
-0 - SerialUSB: PC, debug
-1 - Serial1:   Lora module
-2 - Serial2:   UART2
-3 - not used, just for comfort
-4 - Serial4:   UART4
-5 - Serial5:   UART5
-6 - I2CA
-7 - I2CB
-8 - I2CC
+ 0 - SerialUSB: PC, debug
+ 1 - Serial1:   from Lora module
+ 2 - Serial2:   UART2
+ 3 - not used,  just for comfort
+ 4 - Serial4:   UART4
+ 5 - Serial5:   UART5
+ 6 - I2CA
+ 7 - I2CB
+ 8 - I2CC
+ 9 - not used,  just for comfort
+10 - SerialUSB: special output
+11 - Serial1:   to Lora module
+12 - Serial2:   to UART2
+13 - not used,  just for comfort
+14 - Serial4:   to UART4
+15 - Serial5:   to UART5
 */
+
+extern ByteArray*   pMeasurements;
+extern uint8_t      Ready[6] = { 0, 0, 0, 0, 0, 0 };
 
 //last input from buffers: only SERIALUSB and SERIAL1IN can operate independently
 volatile uint32_t lastIOticks[3] =
@@ -43,8 +49,8 @@ volatile uint32_t lastIOticks[3] =
 //planned sizes of the buffers
 uint16_t CBuffSizes[CPIPELINES] =
     { 300, 300, 100, 000,
-      100, 100, 100, 100,
-      100, 000, 000, 300,
+      100, 100,  16,  16,
+       16, 000, 300, 300,
       100, 000, 100, 100 };
 
 //input buffers
@@ -285,6 +291,7 @@ void setupObjects() {
     if ( nullptr == pMeasurements ) {
         printf("No space for pMeasurements!\r\n");
 
+
 /*
 uint16_t CBuffSizes[CPIPELINES] =
     { 300, 300, 100, 000,
@@ -323,40 +330,9 @@ uint16_t CBuffSizes[CPIPELINES] =
     }
 #endif
 
-    //init Pipes
+    /* init Pipes */
 #if 1
-    //SERIALUSB
-    //SERIAL1IN
-    //SERIAL2IN
-    //SERIAL4IN
-    //SERIAL5IN
-    //I2CAIN
-    //I2CBIN
-    //I2CCIN
-    //SERIAL1OUT
-    //SERIAL2OUT
-    //SERIAL4OUT
-    //SERIAL5OUT
-#endif
-
-#if 1
-    pDemoApp = new LoRa_Mesh_DemoApp;
-    if ( nullptr == pDemoApp ) {
-        //debug---vvv
-        printf("No space for DemoApp! Stopping!\r\n");
-        //debug---^^^
-        while ( 1 ) {;}
-    } else {
-        printf("DemoApp created!\r\n");
-        setup_DemoApp();
-        //debug---vvv
-        printf("DemoApp initialised!\r\n");
-        //debug---^^^
-    }
-#endif
-
-    /* Add parsers and processors to the Pipeline list */
-    //SERIALUSB: HMI incoming/outgoing data processing pipeline
+    //SERIALUSB: HMI incoming data processing pipeline
 #if 0
     if ( pPipelines[0] ) {
         if ( StatusCode::OK == pPipelines[0]->AddProcessor( OnHMI_DataEvent ) ) {
@@ -366,7 +342,7 @@ uint16_t CBuffSizes[CPIPELINES] =
         }
     }
 #endif
-    //SERIAL1IN
+    //SERIAL1IN: radio modem incoming data processing pipeline
 #if 0
     if ( pPipelines[1] ) {
         if ( StatusCode::OK == pPipelines[1]->AddProcessor( OnRadioHub_DataEvent, 0 ) ) {
@@ -376,7 +352,7 @@ uint16_t CBuffSizes[CPIPELINES] =
         }
     }
 #endif
-    //SERIAL2IN
+    //SERIAL2IN: a Serial1 monitor (at the start)
 #if 0
     if ( pPipelines[2] ) {
         if ( StatusCode::OK == pPipelines[2]->AddProcessor( parser, 20 ) ) {
@@ -392,7 +368,7 @@ uint16_t CBuffSizes[CPIPELINES] =
 #endif
     //SERIAL4IN
     //SERIAL5IN
-    //I2CAIN: CO_2_Click
+    //I2CAIN: actually no CB needed, but still the pipeline
     setup_CO_2_SW();
     //I2CBIN
     //I2CCIN
@@ -400,6 +376,23 @@ uint16_t CBuffSizes[CPIPELINES] =
     //SERIAL2OUT
     //SERIAL4OUT
     //SERIAL5OUT
+#endif
+
+#if 1
+    pDemoApp = new LoRa_Mesh_DemoApp;
+    if ( nullptr == pDemoApp ) {
+        printf("No space for DemoApp! Stopping!\r\n");
+        while ( 1 ) {;}
+    } else {
+        //debug---vvv
+        printf("DemoApp created!\r\n");
+        //debug---^^^
+        setup_DemoApp();
+        //debug---vvv
+        printf("DemoApp initialised!\r\n");
+        //debug---^^^
+    }
+#endif
 
 }
 
@@ -479,11 +472,10 @@ void loop() {
     //printf("I2CAIN _pipeOffset/_faultyPipe: %d/%d\r\n",
     //    pPipelines[I2CAIN]->getPipeOffset(), pPipelines[I2CAIN]->getFaultyPipe() );
 #endif
-    //par pipeline!!!
-    if ( Ready[I2CAIN] ) {
+    if ( Ready[I2CAIN] && pMeasurements ) {
         Ready[I2CAIN] = 0;
         uint32_t ppb = (uint32_t)( 1000 * *(float*)( pMeasurements->data() + CO_2_OFFS ) );
-        printf( "CO : 0.%3d ppm\r\n", ppb );
-    }
+        printf("CO: 0.%03d ppm\r\n", ppb );
+    };
 
 }
