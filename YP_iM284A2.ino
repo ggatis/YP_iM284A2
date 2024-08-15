@@ -472,6 +472,7 @@ void loop() {
     //printf("I2CAIN _pipeOffset/_faultyPipe: %d/%d\r\n",
     //    pPipelines[I2CAIN]->getPipeOffset(), pPipelines[I2CAIN]->getFaultyPipe() );
 #endif
+    //kaa konvejieri
     if ( Ready[I2CAIN] && pMeasurements ) {
         Ready[I2CAIN] = 0;
         uint32_t ppb = (uint32_t)( 1000 * *(float*)( pMeasurements->data() + CO_2_OFFS ) );

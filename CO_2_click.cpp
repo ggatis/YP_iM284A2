@@ -268,10 +268,30 @@ StatusCode powerOff_CO_2( ByteArray* pin, ByteArray* pout ) {
     return StatusCode::NEXT;                    //continue on next iteration
 }
 
+#define SCAN_I2C_DEVS 1
+#define DYNAMIC_ALLOCATE 0
+
+const InitRecord InitArray[] = {
+    { nullptr,  powerOn_CO_2,   nullptr },
+    { nullptr,  waitOn_CO_2,    nullptr },
+#if SCAN_I2C_DEVS
+    { nullptr,  Scan_I2C,       nullptr },
+#else
+    { nullptr,  app_init_CO_2,  nullptr },
+    { nullptr,  waitOn_CO_2,    nullptr },
+    { nullptr,  app_task_CO_2,  nullptr },
+#endif
+
+    { nullptr,  powerOff_CO_2,  nullptr },
+    { nullptr,  waitOn_CO_2,    nullptr }
+};
 
 void setup_CO_2_SW( void ) {
     if ( pPipelines[I2CAIN] ) {
+
         printf("Making pPipelines[I2CAIN]:\r\n");
+
+#if DYNAMIC_ALLOCATE
 
         printf("powerOn_CO_2");
         if ( StatusCode::OK !=
@@ -287,7 +307,6 @@ void setup_CO_2_SW( void ) {
         }
         printf(",\r\n");
 
-#define SCAN_I2C_DEVS 0
 #if SCAN_I2C_DEVS
 
         printf("Scan_I2C");
@@ -346,6 +365,38 @@ void setup_CO_2_SW( void ) {
         }
         printf(",\r\n");
 
-        printf("pPipelines[I2CAIN] is ready!\r\n");
+        printf("pPipelines[I2CAIN] is created!\r\n");
+
+#else
+
+        StatusCode status = pPipelines[I2CAIN]->Setup(
+            InitArray,
+            sizeof( InitArray ) / SIZE_OF_INITRECORD );
+
+        if ( StatusCode::OK == status ) {
+
+            printf("CO_ppm buffer");
+            pPipelines[I2CAIN]->setOutputBuffer( 6,
+                (ByteArray*)( pMeasurements->data() + CO_2_OFFS ) );
+            if ( (ByteArray*)( pMeasurements->data() + CO_2_OFFS ) !=
+                pPipelines[I2CAIN]->getOutputBuffer( 6 ) ) {
+                printf(" <- Error");
+            }
+            printf("\r\n");
+
+            printf("pPipelines[I2CAIN] is ready!\r\n");
+
+        } else {
+
+            printf("pPipelines[I2CAIN] is not ready!\r\n");
+
+        }
+
+#endif
+
+    } else {
+
+        printf("No pPipelines[I2CAIN] :(\r\n");
+
     }
 }
