@@ -1,6 +1,6 @@
 #include "YP_iM284A2.h" //global data
 #include "CO_2_click.h"
-#include "Pipes.h"
+//#include "Pipes.h"
 #include "Pipeline.h"
 //#include "CircularBuffer.h"
 #include "i2c_face.h"
@@ -259,7 +259,7 @@ Global variables use 6660 bytes (32%) of dynamic memory, leaving 13820 bytes for
 Sketch uses 59028 bytes (30%) of program storage space. Maximum is 196608 bytes.
 Global variables use 6660 bytes (32%) of dynamic memory, leaving 13820 bytes for local variables. Maximum is 20480 bytes.
 */
-const InitRecord InitArray[] = {
+static const InitRecord InitArray[] = {
     { nullptr,  powerOn_CO_2,   nullptr },
     { nullptr,  waitOn_CO_2,    nullptr },
 #if SCAN_I2C_DEVS

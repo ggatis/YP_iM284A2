@@ -4,6 +4,7 @@
 
 #include <interface.h>
 
+
 //atkariibaa, kur piesleegts
 #define ENABLE_CO_2         ENABLE_I2CA
 #define I2C_ADDR_CO_2       0x48
@@ -80,5 +81,6 @@ void setup_CO_2_SW( void );
 #define CO2_3_LEAD_MODE             0x03
 #define CO2_TEMP_MODE_TIA_OFF       0x06
 #define CO2_TEMP_MODE_TIA_ON        0x07
+
 
 #endif // _CO_2_CLICK_H_

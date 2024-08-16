@@ -27,7 +27,7 @@ volatile uint32_t mySysTick = 0;
  3 - not used,  just for comfort
  4 - Serial4:   UART4
  5 - Serial5:   UART5
- 6 - I2CA
+ 6 - I2CA:      CO 2 Click
  7 - I2CB
  8 - I2CC
  9 - not used,  just for comfort
@@ -39,7 +39,7 @@ volatile uint32_t mySysTick = 0;
 15 - Serial5:   to UART5
 */
 
-uint8_t         Present[6]  = { 1, 1, 1, 1, 1, 1 }; //devices present
+uint8_t         Present[6]  = { 0, 0, 0, 1, 0, 0 }; //devices attaced
 uint8_t         Ready[6]    = { 0, 0, 0, 0, 0, 0 }; //reading ready
 ByteArray*      pMeasurements;
 
@@ -288,11 +288,11 @@ void setupTimers( void ) {
 
 void setupObjects( void ) {
 
-    pMeasurements = new ByteArray( DATA_SIZE );
+    pMeasurements = new ByteArray( DATA_SIZE );     //all results
     if ( nullptr == pMeasurements )
         printf("No space for pMeasurements!\r\n");
 
-
+    /* Circular buffers */
 /*
 uint16_t CBuffSizes[CPIPELINES] =
     { 300, 300, 100, 000,
@@ -300,7 +300,6 @@ uint16_t CBuffSizes[CPIPELINES] =
       100, 000, 000, 300,
       100, 000, 100, 100 };
 */
-    //circular buffers
     for ( uint8_t i = 0; i < CPIPELINES; i++ ) {
         if ( CBuffSizes[i] ) {
             pCBuffs[i] = new CircularBuffer( CBuffSizes[i] );
@@ -314,7 +313,7 @@ uint16_t CBuffSizes[CPIPELINES] =
         }
     }
     
-    //Initialize Pipeline objects specifying the default buffer size
+    /* Initialize Pipeline objects specifying the default buffer size */
 #if 1
     for ( uint8_t i = 0; i < CPIPELINES; i++ ) {
         if ( CBuffSizes[i] ) {
@@ -332,7 +331,7 @@ uint16_t CBuffSizes[CPIPELINES] =
 #endif
 
     /* init Pipes */
-#if 1
+
     //SERIALUSB: HMI incoming data processing pipeline
 #if 0
     if ( pPipelines[0] ) {
@@ -343,16 +342,10 @@ uint16_t CBuffSizes[CPIPELINES] =
         }
     }
 #endif
+
     //SERIAL1IN: radio modem incoming data processing pipeline
-#if 0
-    if ( pPipelines[1] ) {
-        if ( StatusCode::OK == pPipelines[1]->AddProcessor( OnRadioHub_DataEvent, 0 ) ) {
-            ;
-        } else {
-            printf("No space for pPipelines[1] OnRadioHub_DataEvent\r\n");
-        }
-    }
-#endif
+    setup_RX1_Radio();
+
     //SERIAL2IN: a Serial1 monitor (at the start)
 #if 0
     if ( pPipelines[2] ) {
@@ -366,7 +359,10 @@ uint16_t CBuffSizes[CPIPELINES] =
             printf("No space for pPipelines[2] parser\r\n");
         }
     }
+#else
+    setup_RX2_Monitor();
 #endif
+
     //SERIAL4IN
     //SERIAL5IN
     //I2CAIN: actually no CB needed, but still the pipeline
@@ -377,8 +373,8 @@ uint16_t CBuffSizes[CPIPELINES] =
     //SERIAL2OUT
     //SERIAL4OUT
     //SERIAL5OUT
-#endif
 
+    /* init main app */
 #if 1
     pDemoApp = new LoRa_Mesh_DemoApp;
     if ( nullptr == pDemoApp ) {
@@ -430,6 +426,7 @@ void setup( void ) {
 void loop() {
 
     mySysTick = HAL_GetTick();
+
 #if 1
     /*
     if ( 0 == ( mySysTick % 1000 ) ) {
@@ -439,40 +436,54 @@ void loop() {
     }
     */
 #endif
-#if 1
-    if ( pCBuffs[0]->count() ) {
+
 #if 0
-        printf("0%c", pCBuffs[0]->get() );
+    //pPipelines[SERIALUSB]->processAll();
 #else
-        Serial1.write( pCBuffs[0]->get() );
+    if ( pCBuffs[SERIALUSB]->count() ) {
+#if 0
+        printf("0%c", pCBuffs[SERIALUSB]->get() );
+#else
+        Serial1.write( pCBuffs[SERIALUSB]->get() );
 #endif
     }
 #endif
-#if 1
-    if ( pCBuffs[1]->count() ) {
-        printf("1%c", pCBuffs[1]->get() );
+
+#if 0
+    //pPipelines[SERIAL1IN]->processAll();
+#else
+    if ( pCBuffs[SERIAL1IN]->count() ) {
+        printf("1%c", pCBuffs[SERIAL1IN]->get() );
     }
 #endif
-#if 1
-    if ( pCBuffs[2]->count() ) {
-        printf("2%c", pCBuffs[2]->get() );
+
+#if 0
+    if ( pCBuffs[SERIAL2IN]->count() ) {
+        printf("2%c", pCBuffs[SERIAL2IN]->get() );
+    }
+#else
+    pPipelines[SERIAL2IN]->processAll();
+#endif
+
+#if 0
+    //pPipelines[SERIAL4IN]->processAll();
+#else
+    if ( pCBuffs[SERIAL4IN]->count() ) {
+        printf("4%c", pCBuffs[SERIAL4IN]->get() );
     }
 #endif
+
 #if 0
-    //pPipelines[0]->processAll();
+    //pPipelines[SERIAL5IN]->processAll();
+#else
+    if ( pCBuffs[SERIAL5IN]->count() ) {
+        printf("5%c", pCBuffs[SERIAL5IN]->get() );
+    }
 #endif
-#if 0
-    //pPipelines[1]->processAll();
-#endif
-#if 0
-    //pPipelines[2]->processAll();
-#endif
-#if 1
+
     //I2CAIN
     pPipelines[I2CAIN]->processAll();
-    //printf("I2CAIN _pipeOffset/_faultyPipe: %d/%d\r\n",
-    //    pPipelines[I2CAIN]->getPipeOffset(), pPipelines[I2CAIN]->getFaultyPipe() );
-#endif
+
     //kaa konvejieri
     if ( Ready[I2CAIN] && pMeasurements ) {
         Ready[I2CAIN] = 0;

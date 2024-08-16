@@ -26,25 +26,27 @@ bool TimedOut( uint32_t* pTimeOutTime );
 7 - I2CB
 8 - I2CC
 */
-#define SERIALUSB   0
-#define SERIAL1IN   1
-#define SERIAL2IN   2
-#define SERIAL4IN   4
-#define SERIAL5IN   5
-#define I2CAIN      6
-#define I2CBIN      7
-#define I2CCIN      8
-#define SERIAL1OUT  11
-#define SERIAL2OUT  12
-#define SERIAL4OUT  14
-#define SERIAL5OUT  15
-#define CPIPELINES  16
+#define SERIALUSB       0   //App input
+#define SERIAL1IN       1   //App input
+#define SERIAL2IN       2
+#define SERIAL4IN       4
+#define SERIAL5IN       5
+#define I2CAIN          6
+#define I2CBIN          7
+#define I2CCIN          8
+#define SERIAL1OUT      11  //App output
+#define SERIAL2OUT      12
+#define SERIAL4OUT      14
+#define SERIAL5OUT      15
+#define CPIPELINES      16
 
-extern Pipeline*    pPipelines[CPIPELINES];
+extern uint16_t         CBuffSizes[CPIPELINES];
+extern CircularBuffer*  pCBuffs[CPIPELINES];
+extern Pipeline*        pPipelines[CPIPELINES];
 
-extern uint8_t      Present[6];         //device present
-extern uint8_t      Ready[6];           //reading ready
-extern ByteArray*   pMeasurements;
+extern uint8_t          Present[6];                 //device present
+extern uint8_t          Ready[6];                   //reading ready
+extern ByteArray*       pMeasurements;
 
 //The Data Report size
 #define UAR2_SIZE 80

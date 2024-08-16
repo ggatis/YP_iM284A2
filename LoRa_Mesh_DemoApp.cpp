@@ -278,7 +278,7 @@ void OnTestRadioSerialMonitor( void ) {
 
 
 /**
- * @brief   respond to the HMI
+ * @brief   respond to the HMI: modem commands and menu commands if HMI is allowed
  *
  * @param   in          Circular Buffer for analysis
  *          out         result of analysis
@@ -299,7 +299,7 @@ StatusCode OnHMI_DataEvent( ByteArray* pIn, ByteArray* pOut ) {
     
     if ( 0 == pCBin->count() ) return StatusCode::PENDING;
 
-    setTimeOut( &HMIinputTimeout, CommandTimeout );
+    setTimeOut( &HMIinputTimeout, HMI_TIMEOUT );
 
     ActiveCommand = pCBin->at( 0 );
     ActiveCommand = ( '<' == ActiveCommand ) ? 27 : ActiveCommand;
@@ -312,6 +312,7 @@ StatusCode OnHMI_DataEvent( ByteArray* pIn, ByteArray* pOut ) {
             ActiveCommand
         );
         if ( -1 == item ) {
+            //
             printf(" <- command?\r\n");
         } else {
             if ( CommandTables[ActiveCommandTable].pCommandTable[item].aFunction ) {
@@ -329,67 +330,4 @@ StatusCode OnHMI_DataEvent( ByteArray* pIn, ByteArray* pOut ) {
         }
         ActiveCommand = 0;
     }
-}
-
-
-/**
- * @brief   print results for incoming radio events and response
- *
- * @param   result      decoded data from radio module in Json format
- *          out         if something has to be processed further
- */
-//void
-//LoRa_Mesh_DemoApp::OnRadioHub_DataEvent( const QJsonObject& result ) {
-//void
-//LoRa_Mesh_DemoApp::OnRadioHub_DataEvent( const ByteArray& result ) {
-//void
-//LoRa_Mesh_DemoApp::OnRadioHub_DataEvent( const Dictionary& result ) {
-StatusCode OnRadioHub_DataEvent( ByteArray* result, ByteArray* out ) {
-
-    //debug-vvv
-    printf("OnRadioHub_DataEvent\r\n");
-    //debug-^^^
-    
-    if ( 0 == result->count() ) return StatusCode::PENDING;
-
-    const char* key0 = "Event";
-    const char* key1 = "Status";
-    const char* keys[] = { key0, key1 };
-
-    Dictionary* pDataDict = (Dictionary*)result;
-
-#define RadioHubDataEventPipeKind 0
-
-#if 2 == RadioHubDataEventPipeKind
-    //A
-
-    for ( uint8_t i = 0; i < ( sizeof( keys ) / sizeof( keys[0] ) ); i++ ) {
-
-        const char*     key = keys[i];
-        const uint8_t*  keydata = pDataDict->contains( (const uint8_t*)key );
-
-        if ( keydata ) {
-            printf( key );
-            printf(" : ");
-            printf( (const char*)keydata );
-            pDataDict->remove( (const uint8_t*)key );
-        }
-    }
-    pDataDict->print();
-    printf("\r\n");
-
-
-#elif 1 == RadioHubDataEventPipeKind
-    //B
-    pDataDict->print( keys, ( sizeof( keys ) / sizeof( keys[0] ) ) );
-    pDataDict->print( keys, ( sizeof( keys ) / sizeof( keys[0] ) ), true );
-
-#else
-
-    result->print();
-
-#endif
-
-    return StatusCode::OK;
-
 }

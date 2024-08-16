@@ -14,7 +14,7 @@
 
 #include "YP_iM284A2.h"
 
-#define CommandTimeout  500
+#define HMI_TIMEOUT 500
 
 void setup_DemoApp( void );
 
@@ -114,9 +114,5 @@ extern LoRa_Mesh_DemoApp* pDemoApp;
 
 //processor of incomig data from HMI, SerialUSB
 StatusCode OnHMI_DataEvent( ByteArray* in, ByteArray* out );
-
-//processor of incomig results from the incoming radio data event, Serial1
-//result actually is Dictionary*, but out will have 0 size
-StatusCode OnRadioHub_DataEvent( ByteArray* result, ByteArray* out );
 
 #endif // _LoRa_Mesh_DemoApp_H_
