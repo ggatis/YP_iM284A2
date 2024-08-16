@@ -148,8 +148,7 @@ StatusCode Scan_I2C( ByteArray* pin, ByteArray* pout ) {
     // the Write.endTransmisstion to see if
     // a device did acknowledge to the address.
 
-    Wire.beginTransmission( address );
-    error = Wire.endTransmission();
+    error = i2c_master_test( address );
 
     if ( !error ) {
       nDevices++;
@@ -168,14 +167,12 @@ StatusCode Scan_I2C( ByteArray* pin, ByteArray* pout ) {
 
 StatusCode check_CO_2( ByteArray* pin, ByteArray* pout ) {
 
-    Wire.beginTransmission( I2C_ADDR_CO_2 );
-    if ( Wire.endTransmission() ) {
+    if ( i2c_master_test( I2C_ADDR_CO_2 ) ) {
         Present[I2CAIN] = 0;                        //device is not responding
         return StatusCode::NEXT;
     }
 
-    Wire.beginTransmission( I2C_ADDR_ADC );
-    if ( Wire.endTransmission() ) {
+    if ( i2c_master_test( I2C_ADDR_ADC ) ) {
         Present[I2CAIN] = 0;                        //device is not responding
         return StatusCode::NEXT;
     }

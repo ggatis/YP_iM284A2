@@ -3,9 +3,6 @@
 
 
 #include <interface.h>
-#include <Wire.h>
-
-extern TwoWire Wire;
 
 //atkariibaa, kur piesleegts
 #define ENABLE_CO_2         ENABLE_I2CA
