@@ -41,8 +41,10 @@ bool TimedOut( uint32_t* pTimeOutTime );
 #define CPIPELINES  16
 
 extern Pipeline*    pPipelines[CPIPELINES];
+
+extern uint8_t      Present[6];         //device present
+extern uint8_t      Ready[6];           //reading ready
 extern ByteArray*   pMeasurements;
-extern uint8_t      Ready[6];
 
 //The Data Report size
 #define UAR2_SIZE 80
@@ -60,5 +62,8 @@ extern uint8_t      Ready[6];
 #define I2CC_OFFS ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE + I2CB_SIZE )
 
 #define DATA_SIZE ( UAR2_SIZE + UAR4_SIZE + UAR5_SIZE + I2CA_SIZE + I2CB_SIZE + I2CC_SIZE )
+
+#define I2C_SYMBOL_TO       2   //ms, very long time for 100k speed, it can not be 1!
+                                //for N bytes TO calculate as N * ( I2C_SYMBOL_TO - 1 )
 
 #endif // _YP_iM284A2_H_

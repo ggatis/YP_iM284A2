@@ -10,7 +10,7 @@ extern TwoWire Wire;
 //atkariibaa, kur piesleegts
 #define ENABLE_CO_2         ENABLE_I2CA
 #define I2C_ADDR_CO_2       0x48
-#define ADC_DEVICE_ADDR     0x4D
+#define I2C_ADDR_ADC        0x4D
 
 #define POWER_ON_WAIT_CO_2  500     //ms wait after power on
 #define SETUP_WAIT_CO_2     1000    //ms wait after sensor setup before measurement
