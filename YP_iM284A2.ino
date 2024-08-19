@@ -9,12 +9,15 @@ bool noPrintf = true;
 #include <Wire.h>
 
 #include "YP_iM284A2.h"
-#include "CircularBuffer.h"
 //#include "Pipeline.h"
 
+#include "RX1_Radio.h"
+#include "RX2_Monitor.h"
+//...
 #include "CO_2_click.h"
+//...
 
-//some important data
+/* Some important data */
 
 //time
 volatile uint32_t mySysTick = 0;
@@ -284,7 +287,6 @@ void setupTimers( void ) {
 */
 }
 
-#include "Pipes.h"
 
 void setupObjects( void ) {
 

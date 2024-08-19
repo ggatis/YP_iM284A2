@@ -13,6 +13,7 @@ void setTimeOut( uint32_t* pTimeOutTime, uint32_t timeout );
 bool TimedOut( uint32_t* pTimeOutTime );
 
 #include "Pipeline.h"
+#include "CircularBuffer.h"
 
 /* Buffers and Pipelines */
 /*
