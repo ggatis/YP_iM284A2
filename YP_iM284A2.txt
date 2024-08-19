@@ -1,4 +1,5 @@
 Before the duplicate menu code was removed:
+------------------------------------------
 
 Sketch uses 63956 bytes (32%) of program storage space. Maximum is 196608 bytes.
 Global variables use 6684 bytes (32%) of dynamic memory, leaving 13796 bytes for local variables. Maximum is 20480 bytes.
@@ -7,4 +8,17 @@ Memory Programming ...
 Opening and parsing file: yp_im284a2.ino.bin
   File          : yp_im284a2.ino.bin
   Size          : 62.70 KB 
+  Address       : 0x08000000
+
+
+After the duplicate menu code was removed:
+------------------------------------------
+
+Sketch uses 63344 bytes (32%) of program storage space. Maximum is 196608 bytes.
+Global variables use 6684 bytes (32%) of dynamic memory, leaving 13796 bytes for local variables. Maximum is 20480 bytes.
+..
+Memory Programming ...
+Opening and parsing file: yp_im284a2.ino.bin
+  File          : yp_im284a2.ino.bin
+  Size          : 62.10 KB 
   Address       : 0x08000000
