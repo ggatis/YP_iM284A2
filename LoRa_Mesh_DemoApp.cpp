@@ -74,13 +74,11 @@ void setup_DemoApp( void ) {
 }
 
 
-/**
- *  @brief  some command handler
- */
+/*** Commands related to this application ***/
 
 void OnShowMenu( void ) {
-    printf("OnShowMenu\r\n");
-    for ( 
+    //printf("OnShowMenu\r\n");
+    for (
         uint8_t i = 0;
         i < CommandTables[ActiveCommandTable].CommandCount;
         showItem( CommandTables[ActiveCommandTable].pCommandTable, i++ )
@@ -92,7 +90,7 @@ void OnExit( void ) {
 }
 
 
-/* commands for DeviceManagement messages */
+/*** Commands for Device Management Service messages ***/
 
 void OnPingDevice( void ) {
     printf("OnPingDevice\r\n");
@@ -140,6 +138,7 @@ void OnSetSystemOptions( void ) {
     //_RadioHub.GetDeviceManagement().OnSetSystemOptions( params );
     //GetDeviceManagement().OnSetSystemOptions( params );
 }
+
 
 /* Commands for LoRaMesh Router messages */
 
@@ -249,7 +248,7 @@ void OnSendPacketToNode_B( void ) {
 
 
 void OnPrintDemoApp( void ) {
-    printf("OnPrintDemoApp\r\n");
+    //printf("OnPrintDemoApp\r\n");
     printf(    "Network_ID:         ");
     printf( pDemoApp->_Network_ID );
     printf("\r\nDeviceEUI_Node_A:   ");
@@ -261,15 +260,18 @@ void OnPrintDemoApp( void ) {
     printf( pDemoApp->_Payload_for_Node_A );
     printf("\r\nPayload_for_Node_B: ");
     printf( pDemoApp->_Payload_for_Node_B );
+    printf("\r\n");
 }
 
 
 void OnTestRadioSerialMonitor( void ) {
-    printf("OnTestRadioSerialMonitor\r\n");
+    //printf("OnTestRadioSerialMonitor\r\n");
     if ( pPipelines[SERIAL1OUT] ) {
         printf("Sending Zs...");
-        //sink in last/RAW pipes input bufer
-        pPipelines[SERIAL1OUT]->Sink( pPipelines[SERIAL1OUT]->getPipeCount() - 1, "ZZZZZ");
+        //sink in last/RAW pipes input CBuffer
+        //pPipelines[SERIAL1OUT]->Sink( pPipelines[SERIAL1OUT]->getPipeCount(), "ZZZZZ");
+        //vai arii jaataisa Cink CB tipa buferiem
+        pCBuffs[SERIAL1OUT]->append( "ZZZZZ" );
         printf(" Done!\r\n");
     } else {
         printf("pPipelines[SERIAL1OUT] not defined\r\n");
@@ -285,49 +287,149 @@ void OnTestRadioSerialMonitor( void ) {
  */
 StatusCode OnHMI_DataEvent( ByteArray* pIn, ByteArray* pOut ) {
 
+           uint8_t  charIn;
     static uint8_t  ActiveCommand   = 0;
     static uint32_t HMIinputTimeout = 0;
 
+    //no timeout for a single letter commands
+    /*
     if ( ActiveCommand ) {
         if ( TimedOut( &HMIinputTimeout ) ) {
             ActiveCommand = 0;      //rollback visiem uzsaaktajiem procesiem!!
             printf(" <- timeout\r\n");
         }
     }
-
-    CircularBuffer* pCBin   = (CircularBuffer*)pIn;
-    
-    if ( 0 == pCBin->count() ) return StatusCode::PENDING;
+    */
 
     setTimeOut( &HMIinputTimeout, HMI_TIMEOUT );
 
-    ActiveCommand = pCBin->at( 0 );
-    ActiveCommand = ( '<' == ActiveCommand ) ? 27 : ActiveCommand;
-    printf("%c", ActiveCommand );
+    //we know what we have on inputs
+    CircularBuffer* pCBin   = (CircularBuffer*)pIn;
+    
+    if ( 0 == pCBin->count() )  return StatusCode::PENDING;
+    if ( ActiveCommand )        return StatusCode::PENDING;
 
-    if ( ActiveCommand ) {
-        int16_t item = findItem(
+    charIn = pCBin->get();
+    charIn = ( '<' == charIn ) ? 27 : charIn;
+    pOut->append( charIn );
+
+    int16_t item = -1;
+    if ( charIn ) {
+        //printf("Finding '%02X'\r\n", charIn );
+        item = findItem(
             CommandTables[ActiveCommandTable].pCommandTable,
             CommandTables[ActiveCommandTable].CommandCount,
-            ActiveCommand
+            charIn
         );
-        if ( -1 == item ) {
-            //
-            printf(" <- command?\r\n");
-        } else {
-            if ( CommandTables[ActiveCommandTable].pCommandTable[item].aFunction ) {
-                //SerialUSB.print( F(": ") );
-                printf(": ");
-                //SerialUSB.println( CommandTables[ActiveCommandTable].pCommandTable[item].cDescription );
-                printf( CommandTables[ActiveCommandTable].pCommandTable[item].cDescription );
-                printf("\r\n");
-                CommandTables[ActiveCommandTable].pCommandTable[item].aFunction();
-                printf(": %c\r\n", pCBin->get() );  //clean the command character
-            } else {
-                //SerialUSB.println( F(" <- a separator") );
-                printf(" <- a separator\r\n");
-            }
-        }
-        ActiveCommand = 0;
     }
+    if ( 0 <= item ) {
+        //printf("Found as %d\r\n", item );
+        ActiveCommand = charIn;
+        printf("%c", ActiveCommand );
+        if ( CommandTables[ActiveCommandTable].pCommandTable[item].aFunction ) {
+            //SerialUSB.print( F(": ") );
+            printf(": ");
+            //SerialUSB.println( CommandTables[ActiveCommandTable].pCommandTable[item].cDescription );
+            printf( CommandTables[ActiveCommandTable].pCommandTable[item].cDescription );
+            printf("\r\n");
+            CommandTables[ActiveCommandTable].pCommandTable[item].aFunction();
+            pOut->update_count( pOut->count() - 1 );    //clean the command character
+            //printf("pCBin/pOut->count(): %d/%d\r\n", pCBin->count(), pOut->count() );
+        } else {
+            //SerialUSB.println( F(" <- a separator") );
+            printf(" <- a separator\r\n");
+        }
+    }
+
+    ActiveCommand = 0;
+    return StatusCode::NEXT;
+
+}
+
+
+StatusCode Flush( ByteArray* pIn, ByteArray* pOut ) {
+
+    if ( pIn->count() ) {
+        printf("Ignoring: \"");
+        pIn->print();
+        printf("\"\r\n");
+        pIn->clear();
+    }
+    return StatusCode::OK;
+
+}
+
+
+static const InitRecord InitArray[] = {
+    { nullptr,  OnHMI_DataEvent,    nullptr },
+    { nullptr,  Flush,              nullptr }
+};
+
+//pabeigt labot!!!
+void setup_RXU_HMI( void ) {
+
+    //nokliinot SerialUSB() - SerialUSB init!
+    
+    if ( pPipelines[SERIALUSB] ) {
+
+        printf("Making pPipelines[SERIALUSB]:\r\n");
+
+        StatusCode status = pPipelines[SERIALUSB]->Setup(
+            InitArray,
+            sizeof( InitArray ) / SIZE_OF_INITRECORD );
+
+        //input CB
+        if ( StatusCode::OK == status ) {
+
+            printf("USB CBuffer");
+            pPipelines[SERIALUSB]->setInputBuffer( 1, pCBuffs[SERIALUSB] );
+            if ( pPipelines[SERIALUSB]->getInputBuffer( 1 ) != pCBuffs[SERIALUSB] ) {
+                printf(" <- Error");
+                status = StatusCode::ERROR;
+            }
+            printf("\r\n");
+
+        }
+
+        //output BA
+        if ( StatusCode::OK == status ) {
+
+            printf("USB BArray1");
+            ByteArray* pBA = new ByteArray( CBuffSizes[SERIALUSB] );
+            if ( nullptr == pBA ) {
+                printf(" <- Error");
+                status = StatusCode::ERROR;
+            }
+            if ( StatusCode::OK == status ) {
+                pPipelines[SERIALUSB]->setOutputBuffer( 1, pBA );
+                if ( pPipelines[SERIALUSB]->getOutputBuffer( 1 ) != pBA ) {
+                    printf(" <- Error");
+                    status = StatusCode::ERROR;
+                }
+            }
+            if ( StatusCode::OK == status ) {
+                pPipelines[SERIALUSB]->setInputBuffer( 2, pBA );
+                if ( pPipelines[SERIALUSB]->getInputBuffer( 2 ) != pBA ) {
+                    printf(" <- Error");
+                    status = StatusCode::ERROR;
+                }
+            }
+            printf("\r\n");
+
+        }
+
+        printf("pPipelines[SERIALUSB] is ");
+        if ( StatusCode::OK != status ) {
+            printf("not");
+        }
+        printf(" ready!\r\n");
+
+        //pPipelines[SERIALUSB]->Sink( 1, ' ' );      //help
+
+    } else {
+
+        printf("No pPipelines[SERIALUSB] :(\r\n");
+
+    }
+
 }

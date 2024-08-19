@@ -112,7 +112,7 @@ struct LoRa_Mesh_DemoApp {
 extern LoRa_Mesh_DemoApp* pDemoApp;
 
 
-//processor of incomig data from HMI, SerialUSB
-StatusCode OnHMI_DataEvent( ByteArray* in, ByteArray* out );
+void setup_RXU_HMI( void );
+
 
 #endif // _LoRa_Mesh_DemoApp_H_

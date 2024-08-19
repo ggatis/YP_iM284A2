@@ -16,6 +16,7 @@ bool noPrintf = true;
 //...
 #include "CO_2_click.h"
 //...
+#include "TX1_Radio.h"
 
 /* Some important data */
 
@@ -207,7 +208,7 @@ void setupSerials( void ) {
   SerialUSB.begin( 115200 );
   //Initialize serial and wait for port to open:
   uint32_t SerialUSBtimeout;
-  setTimeOut( &SerialUSBtimeout, 7000 );
+  setTimeOut( &SerialUSBtimeout, 8000 );
   noPrintf = false;
   while ( !SerialUSB ) {
      if ( TimedOut( &SerialUSBtimeout ) ) {
@@ -216,6 +217,8 @@ void setupSerials( void ) {
         break;
     }   //wait for serial port to connect. Needed for native USB port only
   }
+  //flush SerialUSB
+  while ( 0 < SerialUSB.available() ) SerialUSB.read();
   LEDoff();
   //printf( "1RX PA10 DigitalPin/PinName: %d/%d\r\n", PA10, digitalPinToPinName( PA10 ) );
   //printf( "1TX PA9  DigitalPin/PinName: %d/%d\r\n", PA9, digitalPinToPinName( PA9 ) );
@@ -336,43 +339,26 @@ uint16_t CBuffSizes[CPIPELINES] =
     /* init Pipes */
 
     //SERIALUSB: HMI incoming data processing pipeline
-#if 0
-    if ( pPipelines[0] ) {
-        if ( StatusCode::OK == pPipelines[0]->AddProcessor( OnHMI_DataEvent ) ) {
-            ;
-        } else {
-            printf("No space for pPipelines[0] OnHMI_DataEvent\r\n");
-        }
-    }
-#endif
+    setup_RXU_HMI();
 
     //SERIAL1IN: radio modem incoming data processing pipeline
     setup_RX1_Radio();
 
     //SERIAL2IN: a Serial1 monitor (at the start)
-#if 0
-    if ( pPipelines[2] ) {
-        if ( StatusCode::OK == pPipelines[2]->AddProcessor( parser, 20 ) ) {
-            if ( StatusCode::OK == pPipelines[2]->AddProcessor( process, 1 ) ) {
-                pPipelines[2]->setErrorHandler( myErrorHandler );
-            } else {
-                printf("No space for pPipelines[2] process\r\n");
-            }
-        } else {
-            printf("No space for pPipelines[2] parser\r\n");
-        }
-    }
-#else
     setup_RX2_Monitor();
-#endif
 
     //SERIAL4IN
     //SERIAL5IN
+
     //I2CAIN: actually no CB needed, but still the pipeline
     setup_CO_2_SW();
+
     //I2CBIN
     //I2CCIN
+
     //SERIAL1OUT
+    setup_TX1_Radio();
+
     //SERIAL2OUT
     //SERIAL4OUT
     //SERIAL5OUT
@@ -440,16 +426,8 @@ void loop() {
     */
 #endif
 
-#if 0
-    //pPipelines[SERIALUSB]->processAll();
-#else
-    if ( pCBuffs[SERIALUSB]->count() ) {
-#if 0
-        printf("0%c", pCBuffs[SERIALUSB]->get() );
-#else
-        Serial1.write( pCBuffs[SERIALUSB]->get() );
-#endif
-    }
+#if 1
+    pPipelines[SERIALUSB]->processAll();
 #endif
 
 #if 0
@@ -460,13 +438,7 @@ void loop() {
     }
 #endif
 
-#if 0
-    if ( pCBuffs[SERIAL2IN]->count() ) {
-        printf("2%c", pCBuffs[SERIAL2IN]->get() );
-    }
-#else
     pPipelines[SERIAL2IN]->processAll();
-#endif
 
 #if 0
     //pPipelines[SERIAL4IN]->processAll();
@@ -486,6 +458,12 @@ void loop() {
 
     //I2CAIN
     pPipelines[I2CAIN]->processAll();
+
+    //I2CBIN
+    //I2CCIN
+
+    //SERIAL1OUT
+    pPipelines[SERIAL1OUT]->processAll();
 
     //kaa konvejieri
     if ( Ready[I2CAIN] && pMeasurements ) {

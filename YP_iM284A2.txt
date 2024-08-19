@@ -1,25 +1,10 @@
-YP_iM284A2.ino
-This application demonstrates the host controller message protocol
-for WiMOD radio modules provided by IMST.
-Making pPipelines[SERIAL1IN]:
-RX1 CBuffer
-RX1 BArray
-pPipelines[SERIAL1IN] is  ready!
-Making pPipelines[SERIAL2IN]:
-RX2 CBuffer
-RX2 BArray
-pPipelines[SERIAL2IN] is  ready!
-Making pPipelines[I2CAIN]:
-pPipelines[I2CAIN] having 8 pipes created!
-CO_ppm buffer
-pPipelines[I2CAIN] is ready!
-DemoApp created!
-DemoApp initialised!
-CO: 0.21978 ppm
-process TO: 53657269616C310D0A                       Serial1
+Before the duplicate menu code was removed:
 
-CO: 0.18315 ppm
-CO: 0.18315 ppm
-CO: 0.18315 ppm
-CO: 0.18070 ppm
-CO: 0.18315 ppm
+Sketch uses 63956 bytes (32%) of program storage space. Maximum is 196608 bytes.
+Global variables use 6684 bytes (32%) of dynamic memory, leaving 13796 bytes for local variables. Maximum is 20480 bytes.
+...
+Memory Programming ...
+Opening and parsing file: yp_im284a2.ino.bin
+  File          : yp_im284a2.ino.bin
+  Size          : 62.70 KB 
+  Address       : 0x08000000

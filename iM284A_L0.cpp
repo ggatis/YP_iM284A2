@@ -49,161 +49,31 @@ const char cDescription0t[] = "test radio serial monitor";
 
 const Command_t Commands_L0[] = {
   { ' ', cDescription00, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnShowMenu] },
-  {  27, cDescription0Q, &quitDemo },
+  {  27, cDescription0Q, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnExit] },
   { '-', cDescription0A, nullptr },
-  { '1', cDescription01, &PingDevice },
-  { '2', cDescription02, &GetDeviceInformation },
-  { '3', cDescription03, &GetFirmwareVersion },
-  { '4', cDescription04, &GetDateTime },
-  { '5', cDescription05, &SetDateTime },
-  { '6', cDescription06, &RestartDevice },
-  { '7', cDescription07, &GetSystemOptions },
-  { '8', cDescription08, &SetSystemOptions },
+  { '1', cDescription01, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnPingDevice] },
+  { '2', cDescription02, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnGetDeviceInformation] },
+  { '3', cDescription03, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnGetFirmwareVersion] },
+  { '4', cDescription04, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnGetDateTime] },
+  { '5', cDescription05, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnSetDateTime] },
+  { '6', cDescription06, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnRestartDevice] },
+  { '7', cDescription07, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnGetSystemOptions] },
+  { '8', cDescription08, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnSetSystemOptions] },
   { '-', cDescription0B, nullptr },
-  { 'a', cDescription0a, &GetNetworkAddress },
-  { 'b', cDescription0b, &SetNetworkAddress_A },
-  { 'c', cDescription0c, &SetNetworkAddress_B },
-  { 'd', cDescription0d, &GetMode },
-  { 'e', cDescription0e, &DisableRouter },
-  { 'f', cDescription0f, &EnableRouter },
-  { 'g', cDescription0g, &EnableCoordinator },
-  { 'h', cDescription0h, &GetLinkStatus },
-  { 'i', cDescription0i, &GetRoutingInfo },
-  { 'j', cDescription0j, &SendPacketToNode_A },
-  { 'k', cDescription0k, &SendPacketToNode_B },
+  { 'a', cDescription0a, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnGetNetworkAddress] },
+  { 'b', cDescription0b, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnSetNetworkAddress_A] },
+  { 'c', cDescription0c, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnSetNetworkAddress_B] },
+  { 'd', cDescription0d, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnGetMode] },
+  { 'e', cDescription0e, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnDisableRouter] },
+  { 'f', cDescription0f, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnEnableRouter] },
+  { 'g', cDescription0g, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnEnableCoordinator] },
+  { 'h', cDescription0h, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnGetLinkStatus] },
+  { 'i', cDescription0i, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnGetRoutingInfo] },
+  { 'j', cDescription0j, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnSendPacketToNode_A] },
+  { 'k', cDescription0k, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnSendPacketToNode_B] },
   { '-', cDescription0C, nullptr },
-  { 'p', cDescription0p, &printDemo },
-  { 't', cDescription0t, &testRadioSerialMonitor }
+  { 'p', cDescription0p, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnPrintDemoApp] },
+  { 't', cDescription0t, LoRa_Mesh_DemoApp::JumpTable[cJumpTo_OnTestRadioSerialMonitor] }
 };
 
 const uint8_t cntCommands_L0 = sizeof( Commands_L0 ) / sizeof( Commands_L0[0] );
-
-
-/*************************************************/
-
-/*** Commands related to this application ***/
-
-void printUsage( void ) {
-    for ( 
-        uint8_t i = 0;
-        i < CommandTables[ActiveCommandTable].CommandCount;
-        showItem( CommandTables[ActiveCommandTable].pCommandTable, i++ )
-    );
-    pDemoApp->JumpTable[cJumpTo_OnShowMenu]();
-}
-
-void quitDemo( void ) {
-    printf("Quit?\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnExit]();
-}
-
-/*** Device Management Services ***/
-
-void PingDevice( void ) {
-    printf("PingDevice\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnPingDevice]();
-}
-
-void GetDeviceInformation( void ) {
-    printf("GetDeviceInformation\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnGetDeviceInformation]();
-}
-
-void GetFirmwareVersion( void ) {
-    printf("GetFirmwareVersion\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnGetFirmwareVersion]();
-}
-
-void GetDateTime( void ) {
-    printf("GetDateTime\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnGetDateTime]();
-}
-
-void SetDateTime( void ) {
-    printf("SetDateTime\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnSetDateTime]();
-}
-
-void RestartDevice( void ) {
-    printf("RestartDevice\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnRestartDevice]();
-}
-
-void GetSystemOptions( void ) {
-    printf("GetSystemOptions\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnGetSystemOptions]();
-}
-
-void SetSystemOptions( void ) {
-    printf("SetSystemOptions\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnSetSystemOptions]();
-}
-
-/*** LoRa Mesh Router ***/
-
-void GetNetworkAddress( void ) {
-    printf("GetNetworkAddress\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnGetNetworkAddress]();
-}
-
-void SetNetworkAddress_A( void ) {
-    printf("SetNetworkAddress_A\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnSetNetworkAddress_A]();
-}
-
-void SetNetworkAddress_B( void ) {
-    printf("SetNetworkAddress_B\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnSetNetworkAddress_B]();
-}
-
-void GetMode( void ) {
-    printf("GetMode\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnGetMode]();
-}
-
-void DisableRouter( void ) {
-    printf("DisableRouter\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnDisableRouter]();
-}
-
-void EnableRouter( void ) {
-    printf("EnableRouter\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnEnableRouter]();
-}
-
-void EnableCoordinator( void ) {
-    printf("EnableCoordinator\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnEnableCoordinator]();
-}
-
-void GetLinkStatus( void ) {
-    printf("GetLinkStatus\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnGetLinkStatus]();
-}
-
-void GetRoutingInfo( void ) {
-    printf("GetRoutingInfo\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnGetRoutingInfo]();
-}
-
-void SendPacketToNode_A( void ) {
-    printf("SendPacketToNode_A\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnSendPacketToNode_A]();
-}
-
-void SendPacketToNode_B( void ) {
-    printf("SendPacketToNode_B\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnSendPacketToNode_B]();
-}
-
-/*** Rest ***/
-
-void printDemo( void ) {
-    printf("printDemo\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnPrintDemoApp]();
-}
-
-void testRadioSerialMonitor( void ) {
-    printf("testRadioSerialMonitor\r\n");
-    pDemoApp->JumpTable[cJumpTo_OnTestRadioSerialMonitor]();
-}
