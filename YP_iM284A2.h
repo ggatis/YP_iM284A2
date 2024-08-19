@@ -45,8 +45,9 @@ extern uint16_t         CBuffSizes[CPIPELINES];
 extern CircularBuffer*  pCBuffs[CPIPELINES];
 extern Pipeline*        pPipelines[CPIPELINES];
 
-extern uint8_t          Present[6];                 //device present
-extern uint8_t          Ready[6];                   //reading ready
+//made larger in order to use the same indeces as pipelines
+extern uint8_t          Present[9];                 //device present
+extern uint8_t          Ready[9];                   //reading ready
 extern ByteArray*       pMeasurements;
 
 //The Data Report size

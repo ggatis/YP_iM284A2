@@ -42,8 +42,9 @@ volatile uint32_t mySysTick = 0;
 15 - Serial5:   to UART5
 */
 
-uint8_t         Present[6]  = { 0, 0, 0, 1, 0, 0 }; //devices attaced
-uint8_t         Ready[6]    = { 0, 0, 0, 0, 0, 0 }; //reading ready
+//uint8_t         Present[9]  = { 0, 0, 1, 0, 1, 1, 1, 1, 1 }; //max devices present
+uint8_t         Present[9]  = { 0, 0, 0, 0, 0, 0, 1, 0, 0 }; //devices present
+uint8_t         Ready[9]    = { 0, 0, 0, 0, 0, 0, 0, 0, 0 }; //reading ready
 ByteArray*      pMeasurements;
 
 //last input from buffers: only SERIALUSB and SERIAL1IN can operate independently

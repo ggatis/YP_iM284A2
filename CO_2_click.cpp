@@ -81,6 +81,7 @@ uint8_t co2_read_adc( uint16_t *data_out ) {
 
     read_addr = 0;
     
+    if ( !data_out ) return 99;
     result = i2c_master_read( I2C_ADDR_ADC, buff_data, 2 );
 
     tmp = buff_data[ 0 ];
@@ -100,7 +101,15 @@ uint8_t co2_get_co2_ppm( float* co2_data ) {
     float       temp;
 
     result = co2_read_adc( &adc_data );
-    
+     if ( result ) {
+        printf("co2_read_adc Error: %d\r\n", result );
+        return result;
+    }
+
+    if ( !co2_data ) {
+        printf("co2_get_co2_ppm Error: nullptr!\r\n");
+        return 99;
+    }
     temp = ( float )adc_data / 4095;
     temp *= 1000;
 
@@ -120,6 +129,7 @@ void setup_CO_2_HW( void ) {
 /* Processors */
 
 StatusCode powerOn_CO_2( ByteArray* pin, ByteArray* pout ) {
+    //printf("powerOn_CO_2\r\n");
     Ready[I2CAIN] = 0;
     digitalWrite( ENABLE_I2CA, HIGH );
     setTimeOut( &ReadyTime, POWER_ON_WAIT_CO_2 );   //wait after enable
@@ -129,6 +139,7 @@ StatusCode powerOn_CO_2( ByteArray* pin, ByteArray* pout ) {
 
 StatusCode waitOn_CO_2( ByteArray* pin, ByteArray* pout ) {
     if ( TimedOut( &ReadyTime ) ) {
+        //printf("waitOn_CO_2\r\n");
         return StatusCode::OK;                      //continue immediately
     }
     return StatusCode::REPEAT;
@@ -167,12 +178,15 @@ StatusCode Scan_I2C( ByteArray* pin, ByteArray* pout ) {
 
 StatusCode check_CO_2( ByteArray* pin, ByteArray* pout ) {
 
+    //printf("check_CO_2\r\n");
     if ( i2c_master_test( I2C_ADDR_CO_2 ) ) {
+        printf("I2C_ADDR_CO_2 not present\r\n");
         Present[I2CAIN] = 0;                        //device is not responding
         return StatusCode::NEXT;
     }
 
     if ( i2c_master_test( I2C_ADDR_ADC ) ) {
+        printf("I2C_ADDR_ADC not present\r\n");
         Present[I2CAIN] = 0;                        //device is not responding
         return StatusCode::NEXT;
     }
@@ -188,6 +202,7 @@ StatusCode app_init_CO_2( ByteArray* pin, ByteArray* pout ) {
 
     //Delay_ms ( 500 );   //POWER_ON_WAIT_CO_2
 
+    //printf("app_init_CO_2\r\n");
     if ( Present[I2CAIN] ) {
     
         //Wire.beginTransmission( I2C_ADDR_CO_2 );
@@ -222,6 +237,7 @@ StatusCode app_task_CO_2( ByteArray* pin, ByteArray* pout ) {
 
     //float co2_value;
 
+    //printf("app_task_CO_2\r\n");
     if ( Present[I2CAIN] ) {
    
         if ( co2_wait_i2c_ready() ) {
@@ -241,12 +257,14 @@ StatusCode app_task_CO_2( ByteArray* pin, ByteArray* pout ) {
 
 
 StatusCode powerOff_CO_2( ByteArray* pin, ByteArray* pout ) {
+
+    //printf("powerOff_CO_2\r\n\r\n");
     digitalWrite( ENABLE_I2CA, LOW );
     ReadyTime += 2500;                              //wait for the next cycle
     return StatusCode::NEXT;                        //continue on next iteration
 }
 
-#define SCAN_I2C_DEVS 1
+#define SCAN_I2C_DEVS 0
 #define DYNAMIC_ALLOCATE 0
 
 #if DYNAMIC_ALLOCATE
@@ -309,6 +327,12 @@ void setup_CO_2_SW( void ) {
 
 #else
 
+        printf("check_CO_2");
+        if ( StatusCode::OK !=
+            pPipelines[I2CAIN]->AddProcessor( nullptr, check_CO_2, nullptr ) ) {
+            printf(" <- Error");
+        }
+        printf(",\r\n");
         printf("app_init_CO_2");
         if ( StatusCode::OK !=
             pPipelines[I2CAIN]->AddProcessor( nullptr, app_init_CO_2, nullptr ) ) {
@@ -356,7 +380,8 @@ void setup_CO_2_SW( void ) {
         }
         printf(",\r\n");
 
-        printf("pPipelines[I2CAIN] is created!\r\n");
+        printf("pPipelines[I2CAIN] having %d pipes created!\r\n",
+            pPipelines[I2CAIN]->getPipeCount() );
 
 #else
 
@@ -364,6 +389,8 @@ void setup_CO_2_SW( void ) {
             InitArray,
             sizeof( InitArray ) / SIZE_OF_INITRECORD );
 
+        printf("pPipelines[I2CAIN] having %d pipes created!\r\n",
+            pPipelines[I2CAIN]->getPipeCount() );
         if ( StatusCode::OK == status ) {
 
             //6. konvejierim app_task_CO_2 vajag buferi, kur nolikt float
