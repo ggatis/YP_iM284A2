@@ -44,9 +44,9 @@ StatusCode process( ByteArray* pin, ByteArray* pout ) {
     }
     if ( maxi ) {
         if ( 20 > maxi ) {
-            printf("process TO: ");
+            printf("Monitor TO: ");
         } else {
-            printf("process     ");
+            printf("Monitor:    ");
         }
         pin->printHEX();
         maxi += maxi;
@@ -86,11 +86,6 @@ static const InitRecord InitArray[] = {
 
 void setup_RX2_Monitor( void ) {
     
-    if ( pPipelines[2] ) {
-        if ( StatusCode::OK == pPipelines[2]->AddProcessor( parser, 20 ) ) {
-            if ( StatusCode::OK == pPipelines[2]->AddProcessor( process, 1 ) ) {
-                pPipelines[2]->setErrorHandler( myErrorHandler );
-
     if ( pPipelines[SERIAL2IN] ) {
 
         printf("Making pPipelines[SERIAL2IN]:\r\n");
@@ -103,7 +98,7 @@ void setup_RX2_Monitor( void ) {
         if ( StatusCode::OK == status ) {
 
             printf("RX2 CBuffer");
-            pPipelines[SERIAL2IN]->setInputBuffer( 1, pCBuffs[SERIAL1] );
+            pPipelines[SERIAL2IN]->setInputBuffer( 1, pCBuffs[SERIAL2IN] );
             if ( pPipelines[SERIAL2IN]->getInputBuffer( 1 ) != pCBuffs[SERIAL2IN] ) {
                 printf(" <- Error");
                 status = StatusCode::ERROR;
@@ -137,6 +132,11 @@ void setup_RX2_Monitor( void ) {
             }
             printf("\r\n");
 
+        }
+
+        //ErrorHandler
+        if ( StatusCode::OK == status ) {
+            pPipelines[SERIAL2IN]->setErrorHandler( myErrorHandler );
         }
 
         printf("pPipelines[SERIAL2IN] is ");

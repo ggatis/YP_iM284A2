@@ -1,6 +1,7 @@
 #include "YP_iM284A2.h" //global data
 #include "RX1_Radio.h"
 #include "Pipeline.h"
+#include "Dictionary.h"
 
 /**
  * @brief   print results for incoming radio events and response
@@ -86,7 +87,7 @@ void setup_RX1_Radio( void ) {
         if ( StatusCode::OK == status ) {
 
             printf("RX1 CBuffer");
-            pPipelines[SERIAL1IN]->setInputBuffer( 1, pCBuffs[SERIAL1] );
+            pPipelines[SERIAL1IN]->setInputBuffer( 1, pCBuffs[SERIAL1IN] );
             if ( pPipelines[SERIAL1IN]->getInputBuffer( 1 ) != pCBuffs[SERIAL1IN] ) {
                 printf(" <- Error");
                 status = StatusCode::ERROR;
