@@ -2,6 +2,8 @@
 #include "RX1_Radio.h"
 #include "Pipeline.h"
 #include "Dictionary.h"
+#include "SlipDecoder.h"
+
 
 /**
  * @brief   print results for incoming radio events and response
@@ -16,6 +18,9 @@
 //void
 //LoRa_Mesh_DemoApp::OnRadioHub_DataEvent( const Dictionary& result ) {
 StatusCode OnRadioHub_DataEvent( ByteArray* result, ByteArray* out ) {
+    //pirms nodot OnRadioHub_DataEvent, jaabuut paarkonverteetam Dictionary
+    //paaidaam: ByteArray
+    //gan ByteArray, gan ByteArray print jaastraadaa
 
     //debug-vvv
     printf("OnRadioHub_DataEvent\r\n");
@@ -67,12 +72,11 @@ StatusCode OnRadioHub_DataEvent( ByteArray* result, ByteArray* out ) {
 
 
 static const InitRecord InitArray[] = {
-//    { nullptr,  powerOn_CO_2,   nullptr },
-//    { nullptr,  waitOn_CO_2,    nullptr },
-    { nullptr,  OnRadioHub_DataEvent,  nullptr }
-//    { nullptr,  powerOff_CO_2,  nullptr },
-//    { nullptr,  waitOn_CO_2,    nullptr }
+    { nullptr,  SLIP_Decode,            nullptr },  //CB, BA
+    { nullptr,  SAP_OnDispatchMessage,  nullptr },  //BA, Dict
+    { nullptr,  OnRadioHub_DataEvent,   nullptr }   //Dict
 };
+
 
 void setup_RX1_Radio( void ) {
     if ( pPipelines[SERIAL1IN] ) {
@@ -108,6 +112,33 @@ void setup_RX1_Radio( void ) {
             if ( StatusCode::OK == status ) {
                 pPipelines[SERIAL1IN]->setOutputBuffer( 1, pBA );
                 if ( pPipelines[SERIAL1IN]->getOutputBuffer( 1 ) != pBA ) {
+                    printf(" <- Error");
+                    status = StatusCode::ERROR;
+                }
+            }
+            if ( StatusCode::OK == status ) {
+                pPipelines[SERIAL1IN]->setInputBuffer( 2, pBA );
+                if ( pPipelines[SERIAL1IN]->getInputBuffer( 2 ) != pBA ) {
+                    printf(" <- Error");
+                    status = StatusCode::ERROR;
+                }
+            }
+            printf("\r\n");
+
+        }
+
+        //output Dict
+        if ( StatusCode::OK == status ) {
+
+            printf("RX1 Dictionary");
+            Dictionary* pDi = new Dictionary( CBuffSizes[SERIAL1IN] + 150 );
+            if ( nullptr == pDi ) {
+                printf(" <- Error");
+                status = StatusCode::ERROR;
+            }
+            if ( StatusCode::OK == status ) {
+                pPipelines[SERIAL1IN]->setOutputBuffer( 2, (ByteArray*)pDi );
+                if ( pPipelines[SERIAL1IN]->getOutputBuffer( 2 ) != (ByteArray*)pDi ) {
                     printf(" <- Error");
                     status = StatusCode::ERROR;
                 }
