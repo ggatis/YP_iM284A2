@@ -1,8 +1,48 @@
-#include "YP_iM284A2.h" //global data
+#include "YP_iM284A2.h"                             //global data
 #include "RX1_Radio.h"
-#include "Pipeline.h"
-#include "Dictionary.h"
 #include "SlipDecoder.h"
+#include "ServiceAccessPoint.h"
+
+
+/**
+ * @brief   check crc and forward message to corresponding service access point
+ *
+ * @param   serialMsg   incoming message
+ *
+ * @param   result      decoded data in Json fromat
+ *
+ * @return  true/false
+ */
+StatusCode SAP_OnDispatchMessage( ByteArray* pSMin, ByteArray* pDictOut ) {
+    //*SerialMessage, *Dictionary
+    SerialMessage*  pSM = (SerialMessage*)pSMin;
+    Dictionary*     pDi = (Dictionary*)pDictOut;
+
+    // check CRC first
+    if ( false == pSM->CheckCRC16() )
+        return StatusCode::ERROR;
+
+    pSM->RemoveCRC16();
+
+    uint8_t sapID = pSM->GetSapID();
+
+    // find SAP
+    for ( uint8_t SAPi = 0; SAPi < 3; SAPi++ ) {
+        ServiceAccessPoint* pServiceAccessPoint = pServiceAccessPoints[SAPi];
+        // SAP found ?
+        if ( pServiceAccessPoint && ( pServiceAccessPoint->GetSAPid() == sapID ) ) {
+            // yes, call message decoder
+            return pServiceAccessPoint->OnDecodeMessage( pSM, pDi );
+        }
+
+    }
+    //
+    printf("No SAP for SAPid = %d.", sapID );
+    //
+
+    return StatusCode::ERROR;
+
+}
 
 
 /**
@@ -19,8 +59,7 @@
 //LoRa_Mesh_DemoApp::OnRadioHub_DataEvent( const Dictionary& result ) {
 StatusCode OnRadioHub_DataEvent( ByteArray* result, ByteArray* out ) {
     //pirms nodot OnRadioHub_DataEvent, jaabuut paarkonverteetam Dictionary
-    //paaidaam: ByteArray
-    //gan ByteArray, gan ByteArray print jaastraadaa
+    //gan ByteArray, gan Dictionary print jaastraadaa
 
     //debug-vvv
     printf("OnRadioHub_DataEvent\r\n");
@@ -72,8 +111,8 @@ StatusCode OnRadioHub_DataEvent( ByteArray* result, ByteArray* out ) {
 
 
 static const InitRecord InitArray[] = {
-    { nullptr,  SLIP_Decode,            nullptr },  //CB, BA
-    { nullptr,  SAP_OnDispatchMessage,  nullptr },  //BA, Dict
+    { nullptr,  SLIP_Decode,            nullptr },  //CB, SM
+    { nullptr,  SAP_OnDispatchMessage,  nullptr },  //SM, Dict
     { nullptr,  OnRadioHub_DataEvent,   nullptr }   //Dict
 };
 
@@ -100,25 +139,25 @@ void setup_RX1_Radio( void ) {
 
         }
 
-        //output BA
+        //output SM
         if ( StatusCode::OK == status ) {
 
-            printf("RX1 BArray");
-            ByteArray* pBA = new ByteArray( CBuffSizes[SERIAL1IN] );
-            if ( nullptr == pBA ) {
+            printf("RX1 SerialMessage");
+            SerialMessage* pSM = new SerialMessage( CBuffSizes[SERIAL1IN] );
+            if ( nullptr == pSM ) {
                 printf(" <- Error");
                 status = StatusCode::ERROR;
             }
             if ( StatusCode::OK == status ) {
-                pPipelines[SERIAL1IN]->setOutputBuffer( 1, pBA );
-                if ( pPipelines[SERIAL1IN]->getOutputBuffer( 1 ) != pBA ) {
+                pPipelines[SERIAL1IN]->setOutputBuffer( 1, pSM );
+                if ( pPipelines[SERIAL1IN]->getOutputBuffer( 1 ) != pSM ) {
                     printf(" <- Error");
                     status = StatusCode::ERROR;
                 }
             }
             if ( StatusCode::OK == status ) {
-                pPipelines[SERIAL1IN]->setInputBuffer( 2, pBA );
-                if ( pPipelines[SERIAL1IN]->getInputBuffer( 2 ) != pBA ) {
+                pPipelines[SERIAL1IN]->setInputBuffer( 2, pSM );
+                if ( pPipelines[SERIAL1IN]->getInputBuffer( 2 ) != pSM ) {
                     printf(" <- Error");
                     status = StatusCode::ERROR;
                 }

@@ -18,6 +18,9 @@ bool noPrintf = true;
 //...
 #include "TX1_Radio.h"
 
+//ServiceAccessPoint
+#include "ServiceAccessPoint.h"
+
 /* Some important data */
 
 //time
@@ -72,6 +75,10 @@ Pipeline* pPipelines[CPIPELINES] =
       nullptr, nullptr, nullptr, nullptr,
       nullptr, nullptr, nullptr, nullptr,
       nullptr, nullptr, nullptr, nullptr };
+
+//ServiceAccessPoints
+ServiceAccessPoint* pServiceAccessPoints[3] =
+    { nullptr, nullptr, nullptr };
 
 #include "LoRa_Mesh_DemoApp.h"
 LoRa_Mesh_DemoApp* pDemoApp;
@@ -297,6 +304,18 @@ void setupObjects( void ) {
     pMeasurements = new ByteArray( DATA_SIZE );     //all results
     if ( nullptr == pMeasurements )
         printf("No space for pMeasurements!\r\n");
+
+    /* ServiceAccessPoints */
+    pServiceAccessPoints[0] = new DeviceManagement();
+    //pServiceAccessPoints[1] = new LoRaMeshRouter();
+    //pServiceAccessPoints[2] = new Trace();
+    if ( nullptr == pServiceAccessPoints[0] )
+        printf("No space for DeviceManagement!\r\n");
+    //if ( nullptr == pServiceAccessPoints[1] )
+    //    printf("No space for LoRaMeshRouter!\r\n");
+    //if ( nullptr == pServiceAccessPoints[2] )
+    //    printf("No space for Trace!\r\n");
+
 
     /* Circular buffers */
 /*

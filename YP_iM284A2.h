@@ -12,8 +12,7 @@ extern volatile uint32_t lastIOticks[3];
 void setTimeOut( uint32_t* pTimeOutTime, uint32_t timeout );
 bool TimedOut( uint32_t* pTimeOutTime );
 
-#include "Pipeline.h"
-#include "CircularBuffer.h"
+#include "ServiceAccessPoint.h"
 
 /* Buffers and Pipelines */
 /*
@@ -49,6 +48,9 @@ extern Pipeline*        pPipelines[CPIPELINES];
 extern uint8_t          Present[9];                 //device present
 extern uint8_t          Ready[9];                   //reading ready
 extern ByteArray*       pMeasurements;
+
+extern ServiceAccessPoint*  pServiceAccessPoints[3];
+
 
 //The Data Report size
 #define UAR2_SIZE 80
