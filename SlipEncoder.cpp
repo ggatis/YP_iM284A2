@@ -19,39 +19,43 @@
 /**
  * @brief   encode message
  *
- * @param   input       buffer with original messsage
+ * @param   input       SerialMessage buffer with original messsage
  *
- * @param   output      buffer for encoded message
+ * @param   output      CircularBuffer for encoded message
  *
  * @return  status
  */
-StatusCode SLIP_Encode( ByteArray* pInput, ByteArray* pOutput ) {
+//StatusCode status = SLIP_Encode( pSMin, pCBout );
+StatusCode SLIP_Encode( ByteArray* pSMin, ByteArray* pCBout ) {
 
-    pOutput->append( SLIP_End );
+    SerialMessage*  pSM = (SerialMessage*)pSMin;
+    CircularBuffer* pCB = (CircularBuffer*)pCBout;
 
-    for ( int index = 0; index < pInput->count(); index++ ) {
+    pCB->append( SLIP_End );
 
-        uint8_t byte = pInput->at( index );
+    for ( int index = 0; index < pSM->count(); index++ ) {
+
+        uint8_t byte = pSM->at( index );
 
         switch ( byte ) {
         case SLIP_End:
-                pOutput->append( SLIP_Esc );
-                pOutput->append( SLIP_EscEnd );
-                break;
+            pCB->append( SLIP_Esc );
+            pCB->append( SLIP_EscEnd );
+            break;
 
         case SLIP_Esc:
-                pOutput->append( SLIP_Esc );
-                pOutput->append( SLIP_EscEsc );
-                break;
+            pCB->append( SLIP_Esc );
+            pCB->append( SLIP_EscEsc );
+            break;
 
         default:
-                pOutput->append( byte );
-                break;
+            pCB->append( byte );
+            break;
         }
 
     }
 
-    pOutput->append( SLIP_End );
+    pCB->append( SLIP_End );
 
     return StatusCode::OK;
 

@@ -36,9 +36,8 @@ StatusCode SAP_OnDispatchMessage( ByteArray* pSMin, ByteArray* pDictOut ) {
         }
 
     }
-    //
+
     printf("No SAP for SAPid = %d.", sapID );
-    //
 
     return StatusCode::ERROR;
 

@@ -37,7 +37,7 @@ protected:
 
     //<! helpers for outgoing messages
     //bool                      SendMessage( uint8_t reqID );
-    StatusCode                  CreateMessage( uint8_t reqID, SerialMessage* pSMout );
+    bool                        CreateMessage( uint8_t reqID );
     //bool                      SendMessage( SerialMessage& serialMsg );
 
 protected:

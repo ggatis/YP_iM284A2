@@ -10,6 +10,7 @@ bool noPrintf = true;
 
 #include "YP_iM284A2.h"
 //#include "Pipeline.h"
+#include "CurrentTime.h"
 
 #include "RX1_Radio.h"
 #include "RX2_Monitor.h"
@@ -20,11 +21,13 @@ bool noPrintf = true;
 
 //ServiceAccessPoint
 #include "ServiceAccessPoint.h"
+#include "DeviceManagement.h"
 
 /* Some important data */
 
 //time
-volatile uint32_t mySysTick = 0;
+volatile uint32_t mySysTick     = 0;
+volatile uint32_t mySysTickOld  = 0;
 
 /* Buffers and Pipelines */
 /*
@@ -424,7 +427,9 @@ void setup( void ) {
 
   setupObjects();
 
-  mySysTick = HAL_GetTick();
+  //setup Time
+  mySysTick     = HAL_GetTick();
+  initCurrentTime();
 
 }
 
@@ -433,7 +438,9 @@ void setup( void ) {
 /*********************************************************************/
 void loop() {
 
-    mySysTick = HAL_GetTick();
+    mySysTickOld    = mySysTick;
+    mySysTick       = HAL_GetTick();
+    addCurrentTimeInUSeconds( 1000 * ( mySysTickOld - mySysTick ) );
 
 #if 1
     /*

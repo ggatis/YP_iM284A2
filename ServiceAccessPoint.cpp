@@ -9,8 +9,9 @@
  *          any warranties in the hope that it will be useful.
  */
 
-#include "ServiceAccessPoint.h"
-#include "SlipEncoder.h"
+//#include "ServiceAccessPoint.h"
+#include "YP_iM284A2.h"
+//#include "SlipEncoder.h"
 
 
 /**
@@ -45,11 +46,25 @@ ServiceAccessPoint::GetWUpChars( void ) {
  *
  * @return  true/false
  */
-StatusCode
-ServiceAccessPoint::CreateMessage( uint8_t reqID, SerialMessage* pSMout ) {
-    pSMout->InitRequest( _SapID, reqID );
-    //calculate and append CRCC16
-    pSMout->Append_CRC16();
-    return StatusCode::NEXT;
-//    return SendMessage( msg );
+bool
+ServiceAccessPoint::CreateMessage( uint8_t reqID ) {
+
+    if ( pPipelines[SERIAL1OUT] ) {
+
+        //no Radio
+        SerialMessage* pSMout = (SerialMessage*)pPipelines[SERIAL1OUT]->getInputBuffer( 1 );
+
+        if ( pSMout ) {
+            //make message
+            pSMout->InitRequest( _SapID, reqID );
+            //calculate and append CRCC16
+            pSMout->Append_CRC16();
+            //principaa vajadzeetu nochekot, bet gan jau,
+            //ka 4 baitus SM pretii panjems :)
+            return true;
+        }
+    }
+
+    return false;
+
 }

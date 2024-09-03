@@ -19,7 +19,10 @@
 #include "Pipeline.h"
 
 
-//actually output is CircularBuffer*
+//actually:
+//  input is SerialMessage*
+// output is CircularBuffer*
+//StatusCode status = SLIP_Encode( pSMin, pCBout );
 StatusCode SLIP_Encode( ByteArray* pInput, ByteArray* pOutput );
 
 
