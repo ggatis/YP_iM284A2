@@ -152,18 +152,18 @@ private:
 
     //Dictionary                  DecodeDeviceInfo            ( const SerialMessage& serialMsg, int index ) const;
     bool                        DecodeDeviceInfo            ( const uint8_t* pDeviceInfo,
-                                                                Dictionary* pDictOut );
+                                                                Dictionary* pDictOut ) const;
 
     //Dictionary                  DecodeFirmwareInfo          ( const SerialMessage& serialMsg, int index ) const;
     bool                        DecodeFirmwareInfo          ( const uint8_t* pFirmwareInfo,
-                                                                Dictionary* pDictOut );
+                                                                Dictionary* pDictOut ) const;
 
 private:
 
     //<! message decoder prototype
     typedef
-        StatusCode             (DeviceManagement::*Handler)(
-            const SerialMessage* pSMin, Dictionary* pDictOut );
+        bool                   (DeviceManagement::*Handler) ( const SerialMessage* pSMin,
+                                                                Dictionary* pDictOut );
 
     //<! map with status code strings
     //static const aMap < uint8_t, std::string >  _StatusCodes;

@@ -260,7 +260,7 @@ DeviceManagement::OnDecodeMessage( const SerialMessage* pSMin, Dictionary* pDict
             _EventNames.value( msgID, "unknown handler name" ) );
 
         //call message handler
-        return ( this->*handler )( pSMin, pDictOut );
+        return ( this->*handler )( pSMin, pDictOut ) ? StatusCode::OK : StatusCode::ERROR;
     }
     //no handler found
     
@@ -279,7 +279,7 @@ DeviceManagement::OnDecodeMessage( const SerialMessage* pSMin, Dictionary* pDict
  *
  * @param   result          decoded data in Json format
  *
- * @return  true/false
+ * @return  true/false      true = OK
  */
 //bool
 //DeviceManagement::OnDefaultResponse( const SerialMessage& serialMsg, Dictionary& result ) {
@@ -412,7 +412,7 @@ DeviceManagement::OnFirmwareVersionResponse( const SerialMessage* pSMin, Diction
 bool
 DeviceManagement::OnDateTimeResponse( const SerialMessage* pSMin, Dictionary* pDictOut ) {
     // check minimum payload length
-    if ( serialMsg.GetResponsePayloadLength() < ( 4 ) )
+    if ( pSMin->GetResponsePayloadLength() < ( 4 ) )
         return false;
 
     uint8_t status = pSMin->GetResponseStatus();
@@ -449,21 +449,21 @@ DeviceManagement::OnSystemOptionsResponse( const SerialMessage* pSMin, Dictionar
         return false;
 
     uint8_t status = pSMin->GetResponseStatus();
-    result.append( "Status", _StatusCodes.value( status, "error" ) );
+    pDictOut->append( "Status", _StatusCodes.value( status, "error" ) );
 
     if ( Ok == status ) {
 
         uint32_t options                =   pSMin->GetU32( SerialMessage::ResponseData_Index );
 
-        result.append("System Options.Options.APS",
+        pDictOut->append("System Options.Options.APS",
             ( options & SO_APS )            ? "on" : "off");
-        result.append("System Options.Options.Trace",
+        pDictOut->append("System Options.Options.Trace",
             ( options & SO_Trace )          ? "on" : "off");
-        result.append("System Options.Options.RTC",
+        pDictOut->append("System Options.Options.RTC",
             ( options & SO_RTC )            ? "on" : "off");
-        result.append("System Options.Options.WatchDog",
+        pDictOut->append("System Options.Options.WatchDog",
             ( options & SO_WatchDog )       ? "on" : "off");
-        result.append("System Options.Options.Startup Event",
+        pDictOut->append("System Options.Options.Startup Event",
             ( options & SO_StartupEvent )   ? "on" : "off");
 
     }
@@ -482,33 +482,39 @@ DeviceManagement::OnSystemOptionsResponse( const SerialMessage* pSMin, Dictionar
 #define ModuleID_pos        1
 #define ProductType_pos     5
 #define ProductID_pos       9
-//Dictionary DecodeDeviceInfo( const SerialMessage& serialMsg, int index ) const;
 bool
-DeviceManagement::DecodeDeviceInfo( const uint8_t* pDeviceInfo, Dictionary* pDictOut ) {
+DeviceManagement::DecodeDeviceInfo( const uint8_t* pDeviceInfo, Dictionary* pDictOut ) const {
 
     uint8_t moduleType      =   pDeviceInfo[ModuleType_pos];
     //info.append("Module Type",
     //    _ModuleTypes.value( moduleType, "unknown module type:" + std::to_string( moduleType ) ) );
-    pDictOut->append("Module Type: ");
+    pDictOut->append("Device Info/Module Type", "\0");
     if ( 0 < _ModuleTypes.contains( moduleType ) ) {
-        pDictOut->append( _ModuleTypes.value( moduleType, "" ) );
+        pDictOut->append( _ModuleTypes.value( moduleType, "\0" ) );
     } else {                                                
         pDictOut->append("unknown module type: ");
         pDictOut->appendU8( moduleType );
     }
-    pDictOut->append(", ");
+    //
+    pDictOut->print();
+    //
 
-    pDictOut->append("Module ID: ");
-    pDictOut->appendU32( *(uint32_t*)( pDeviceInfo + ModuleID_pos ) );
-    pDictOut->append(", ");
+    pDictOut->append("Device Info/Module ID", *(uint32_t*)( pDeviceInfo + ModuleID_pos ) );
+    //
+    pDictOut->print();
+    //
 
-    pDictOut->append("Product Type: ");
+    pDictOut->append("Device Info/Product Type", "\0");
     pDictOut->appendHEX( pDeviceInfo + ProductType_pos, 4 );
-    pDictOut->append(", ");
+    //
+    pDictOut->print();
+    //
 
-    pDictOut->append("Product ID: ");
+    pDictOut->append("Device Info/Product ID", "\0");
     pDictOut->appendHEX( pDeviceInfo + ProductID_pos, 4 );
-    pDictOut->append(".");
+    //
+    pDictOut->print();
+    //
 
     return true;
 
@@ -523,21 +529,37 @@ DeviceManagement::DecodeDeviceInfo( const uint8_t* pDeviceInfo, Dictionary* pDic
  *
  * @return  Dictionary including decoded data
  */
-//Dictionary DecodeFirmwareInfo( const SerialMessage& serialMsg, int index ) const;
+#define FWVersionLSB_pos    0
+#define FWVersionMSB_pos    1
+#define BuildCount_pos      2
+#define BuildDate_pos       4
+#define FirmwareName_pos   14
 bool
 DeviceManagement::DecodeFirmwareInfo( const uint8_t* pFirmwareInfo, Dictionary* pDictOut ) const {
     //@pFirmwareInfo:
-    //Fimrware Version(2) + BuildCount(2) +  BuildDate(10) + FirmwareName( > 1 )
+    //Fimrware VersionLSB(1) + VersionMSB(1) + BuildCount(2) +  BuildDate(10) + FirmwareName( > 1 )
 
-    info.append("Version",
-        std::to_string( serialMsg.GetU8( index + 1 ) ) + 
-            "." + std::to_string( serialMsg.GetU8( index ) ) );
-    info.append("Build Count",
-        std::to_string( serialMsg.GetU16( index + 2 ) ) );
-    info.append("Build Date", 
-        serialMsg.GetData( index + 4 ), 10 );
-    info.append("Firmware Name",
-        serialMsg.GetData( index + 14 ) );
+    pDictOut->append("FirmwareInfo/Version", *( pFirmwareInfo + FWVersionMSB_pos ) );
+    pDictOut->append(".");
+    pDictOut->appendU8( *( pFirmwareInfo + FWVersionLSB_pos ) );
+    //
+    pDictOut->print();
+    //
+      
+    pDictOut->append("FirmwareInfo/Build Count", (uint32_t)*(uint16_t*)( pFirmwareInfo + BuildCount_pos ) );
+    //
+    pDictOut->print();
+    //
+
+    pDictOut->append("FirmwareInfo/Build Date", pFirmwareInfo + BuildDate_pos, 10 );
+    //
+    pDictOut->print();
+    //
+
+    pDictOut->append("FirmwareInfo/Firmware Name", pFirmwareInfo + FirmwareName_pos );
+    //
+    pDictOut->print();
+    //
 
     return true;
 
